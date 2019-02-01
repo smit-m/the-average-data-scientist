@@ -1,5 +1,5 @@
-# side-projects
-Projects with Calvin and Smit
+# personal-projects
+Projects undertaken in collaboration with Calvin (@WindRainbow)
 
 
 - JP aggregator (dashboarding down the line)
