@@ -1,4 +1,4 @@
 # The Average Data Scientist
 
 
-WIP
+_Work in Progress_
