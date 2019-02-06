@@ -31,7 +31,7 @@ for pagenum in range(1,26):
     
     if pagenum == 1:
         #Opening the first page
-        driver.get('https://www.glassdoor.com/Job/new-york-data-scientist-jobs-SRCH_IL.0,8_IC1132348_KO9,23.htm')
+        driver.get('https://www.glassdoor.com/Job/data-scientist-jobs-SRCH_KO0,14.htm')
         time.sleep(5)
     else:
         #Clicking on the "Next" button
