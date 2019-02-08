@@ -27,7 +27,7 @@ f = open('glassdoor.txt', 'a')
 
 srno = 0
 
-for pagenum in range(1,26):
+for pagenum in range(1,31):
     
     if pagenum == 1:
         #Opening the first page
