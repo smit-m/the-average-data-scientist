@@ -27,7 +27,7 @@ f = open('glassdoor.txt', 'a')
 
 srno = 0
 
-for pagenum in range(1,31):
+for pagenum in range(1,101):
     
     if pagenum == 1:
         #Opening the first page
@@ -108,3 +108,31 @@ for pagenum in range(1,31):
 
 f.close()
 driver.close()
+
+
+
+
+### Filter out "Indeed Prime" from the company field
+
+########################################
+
+
+
+
+
+driver.get('https://www.glassdoor.com/index.htm')
+time.sleep(5)
+
+jt = driver.find_element_by_xpath("//input[@id = 'KeywordSearch']")
+jt.clear()
+jt.send_keys('Data Scientist')
+
+jl = driver.find_element_by_xpath("//input[@id = 'LocationSearch']")
+jl.clear()
+jl.send_keys('AZ')
+
+searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
+searchbutton.click()
+
+
+
