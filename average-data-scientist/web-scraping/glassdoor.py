@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Aug 19 20:00:24 2018
+
+@author: mehta
+"""
+
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -76,7 +83,7 @@ job_title = 'Data Scientist'    #Change the job title here to change the search
 
 
 #l = open('logfile.txt', 'a')
-#l.write('DateTime' + '|' + 'State' + '|' + 'SearchLoad' + '|' + 'Jobs_Found')
+#l.write('DateTime' + '|' + 'State' + '|' + 'SearchLoad' + '|' + 'Jobs_Found' + '\n')
 #l.close()
 l = open('logfile.txt', 'a')
 
@@ -85,10 +92,10 @@ l = open('logfile.txt', 'a')
 #f.close()
 f = open('glassdoor.txt', 'a')
 
-
+global_jobURLs = []
 srno = 0
 for s in states_list:
-    l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s)
+    l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
     driver.get('https://www.glassdoor.com/index.htm')
     time.sleep(3)
     
@@ -107,6 +114,7 @@ for s in states_list:
     searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
     searchbutton.click()
     l.write('Success' + '|')
+    time.sleep(2)
     
     try:
         jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
@@ -126,6 +134,7 @@ for s in states_list:
     
     for p in range(pages):
         
+        time.sleep(2)
         #Closing the popup if it pop ups
         XBtn = driver.find_elements_by_class_name('xBtn')
         if len(XBtn) > 0:
@@ -136,7 +145,7 @@ for s in states_list:
         jl = driver.find_elements_by_class_name('jl')
         counter = 1
         for job in jl:
-            srno = (p-1)*30 + counter
+            srno = p*30 + counter
             f.write(time.strftime("%Y-%m-%d") + '|' + str(srno) + '|')
             
             #Designation
@@ -185,13 +194,15 @@ for s in states_list:
             try:
                 url = job.find_element_by_class_name('jobLink')
                 f.write(url.get_attribute('href'))
+                global_jobURLs.append(url.get_attribute('href'))
             except:
                 f.write('Not Found')
                 
             f.write('\n')
             counter = counter + 1
             
-        if p == pages:
+        print(s + ' : Page ' + str(p+1) + ' done')
+        if p == pages-1:
             #Going through the next iteration of state as end of pages is reached
             break
         else:
@@ -201,6 +212,7 @@ for s in states_list:
     
 
 
+global_jobURLs.clear()
 f.close()
 l.close()
 driver.close()
@@ -211,3 +223,4 @@ driver.close()
 ### Filter out "Indeed Prime" from the company field
 
 ########################################
+
