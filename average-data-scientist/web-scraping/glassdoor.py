@@ -81,7 +81,7 @@ job_title = 'Data Scientist'    #Change the job title here to change the search
 l = open('logfile.txt', 'a')
 
 #f = open('glassdoor.txt', 'a')
-#f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '\n')
+#f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '|' + 'JobListingID' + '\n')
 #f.close()
 f = open('glassdoor.txt', 'a')
 
@@ -183,12 +183,14 @@ for s in states_list:
             except:
                 f.write('Not Found' + '|')
                 
-            #Job URL
+            #Job URL and JobListingID
             try:
                 url = job.find_element_by_class_name('jobLink')
-                f.write(url.get_attribute('href'))
+                f.write(url.get_attribute('href') + '|')
+                f.write(url.get_attribute('href').split('jobListingId=', 1)[1])
                 global_jobURLs.append(url.get_attribute('href'))
             except:
+                f.write('Not Found' + '|')
                 f.write('Not Found')
                 
             f.write('\n')
