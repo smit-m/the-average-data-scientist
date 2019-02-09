@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import time
+import math
 
 
 #make browser
@@ -19,6 +20,66 @@ options.add_argument("--disable-notifications")
 driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=service_args,chrome_options=options)
 
 
+states_list = ['Alabama, US',
+               'Alaska, US',
+               'Arizona, US',
+               'Arkansas, US',
+               'California, US',
+               'Colorado, US',
+               'Connecticut, US',
+               'Delaware, US',
+               'Florida, US',
+               'Georgia, US',
+               'Hawaii, US',
+               'Idaho, US',
+               'Illinois, US',
+               'Indiana, US',
+               'Iowa, US',
+               'Kansas, US',
+               'Kentucky, US',
+               'Louisiana, US',
+               'Maine, US',
+               'Maryland, US',
+               'Massachusetts, US',
+               'Michigan, US',
+               'Minnesota, US',
+               'Mississippi, US',
+               'Missouri, US',
+               'Montana, US',
+               'Nebraska, US',
+               'Nevada, US',
+               'New Hampshire, US',
+               'New Jersey, US',
+               'New Mexico, US',
+               'New York, US',
+               'North Carolina, US',
+               'North Dakota, US',
+               'Ohio, US',
+               'Oklahoma, US',
+               'Oregon, US',
+               'Pennsylvania, US',
+               'Rhode Island, US',
+               'South Carolina, US',
+               'South Dakota, US',
+               'Tennessee, US',
+               'Texas, US',
+               'Utah, US',
+               'Vermont, US',
+               'Virginia, US',
+               'Washington State, US',
+               'West Virginia, US',
+               'Wisconsin, US',
+               'Wyoming, US',
+               'Washington, DC']
+
+job_title = 'Data Scientist'    #Change the job title here to change the search 
+
+
+#l = open('logfile.txt', 'a')
+#l.write('DateTime' + '|' + 'State' + '|' + 'SearchLoad' + '|' + 'Jobs_Found')
+#l.close()
+l = open('logfile.txt', 'a')
+
 #f = open('glassdoor.txt', 'a')
 #f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '\n')
 #f.close()
@@ -26,87 +87,122 @@ f = open('glassdoor.txt', 'a')
 
 
 srno = 0
-
-for pagenum in range(1,101):
+for s in states_list:
+    l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s)
+    driver.get('https://www.glassdoor.com/index.htm')
+    time.sleep(3)
     
-    if pagenum == 1:
-        #Opening the first page
-        driver.get('https://www.glassdoor.com/Job/data-scientist-jobs-SRCH_KO0,14.htm')
-        time.sleep(5)
-    else:
-        #Clicking on the "Next" button
-        nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
-        nextbutton[0].click()
     
-    #Closing the popup
-    XBtn = driver.find_elements_by_class_name('xBtn')
-    if len(XBtn) > 0:
-        XBtn[0].click()
-    else:
-        pass
-      
-    jl = driver.find_elements_by_class_name('jl')
-    counter = 1
-    for job in jl:
-        srno = (pagenum-1)*30 + counter
-        f.write(time.strftime("%Y-%m-%d") + '|' + str(srno) + '|')
+    #look for the keyword input box
+    jt = driver.find_element_by_xpath("//input[@id = 'KeywordSearch']")
+    jt.clear()
+    jt.send_keys(job_title)
+    
+    #look for the location input box
+    jl = driver.find_element_by_xpath("//input[@id = 'LocationSearch']")
+    jl.clear()
+    jl.send_keys(s)
+    
+    #click on the search button
+    searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
+    searchbutton.click()
+    l.write('Success' + '|')
+    
+    try:
+        jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
+        jobs = int(jobs_count.text.replace(' Jobs', '').replace(',', ''))
+        l.write(str(jobs) + '\n')
+    except:
+        l.write('0' + '\n')
+        jobs = 0
         
-        #Designation
-        try:
-            designation = job.find_elements_by_class_name('jobLink')
-            f.write(designation[1].text + '|')
-        except:
-            f.write('Not Found' + '|')
-            
-        #Company
-        try:
-            company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
-            f.write(company[counter-1].text + '|')
-        except:
-            f.write('Not Found' + '|')
-            
-        #Location
-        try:
-            loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
-            f.write(loc[counter-1].text + '|')
-        except:
-            f.write('Not Found' + '|')
+    if jobs == 0:
+        pages = 0
+    elif jobs < 901:
+        pages = math.ceil(jobs/30)
+    else:
+        pages = 30
         
-        #Days ago
-        try:
-            days_ago = job.find_elements_by_xpath("//span[@class='minor']")
-            f.write(days_ago[counter-1].text + '|')
-        except:
-            f.write('Not Found' + '|')
-            
-        #New Listing
-        try:
-            new_listing = job.find_elements_by_class_name('hotListing')
-            f.write(new_listing[0].text + '|')
-        except:
-            f.write('Not Found' + '|')
-            
-        #Salary Estimate
-        try:
-            salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
-            f.write(salary_est[counter-1].text + '|')
-        except:
-            f.write('Not Found' + '|')
-            
-        #Job URL
-        try:
-            url = job.find_element_by_class_name('jobLink')
-            f.write(url.get_attribute('href'))
-        except:
-            f.write('Not Found')
-            
-        f.write('\n')
-        counter = counter + 1
     
-    print("Page " + str(pagenum) + " done")
+    for p in range(pages):
+        
+        #Closing the popup if it pop ups
+        XBtn = driver.find_elements_by_class_name('xBtn')
+        if len(XBtn) > 0:
+            XBtn[0].click()
+        else:
+            pass
+          
+        jl = driver.find_elements_by_class_name('jl')
+        counter = 1
+        for job in jl:
+            srno = (p-1)*30 + counter
+            f.write(time.strftime("%Y-%m-%d") + '|' + str(srno) + '|')
+            
+            #Designation
+            try:
+                designation = job.find_elements_by_class_name('jobLink')
+                f.write(designation[1].text + '|')
+            except:
+                f.write('Not Found' + '|')
+                
+            #Company
+            try:
+                company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
+                f.write(company[counter-1].text + '|')
+            except:
+                f.write('Not Found' + '|')
+                
+            #Location
+            try:
+                loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
+                f.write(loc[counter-1].text + '|')
+            except:
+                f.write('Not Found' + '|')
+            
+            #Days ago
+            try:
+                days_ago = job.find_elements_by_xpath("//span[@class='minor']")
+                f.write(days_ago[counter-1].text + '|')
+            except:
+                f.write('Not Found' + '|')
+                
+            #New Listing
+            try:
+                new_listing = job.find_elements_by_class_name('hotListing')
+                f.write(new_listing[0].text + '|')
+            except:
+                f.write('Not Found' + '|')
+                
+            #Salary Estimate
+            try:
+                salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
+                f.write(salary_est[counter-1].text + '|')
+            except:
+                f.write('Not Found' + '|')
+                
+            #Job URL
+            try:
+                url = job.find_element_by_class_name('jobLink')
+                f.write(url.get_attribute('href'))
+            except:
+                f.write('Not Found')
+                
+            f.write('\n')
+            counter = counter + 1
+            
+        if p == pages:
+            #Going through the next iteration of state as end of pages is reached
+            break
+        else:
+            #Clicking on the "Next" button
+            nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
+            nextbutton[0].click()
+    
 
 
 f.close()
+l.close()
 driver.close()
 
 
@@ -115,78 +211,3 @@ driver.close()
 ### Filter out "Indeed Prime" from the company field
 
 ########################################
-
-
-
-
-
-driver.get('https://www.glassdoor.com/index.htm')
-time.sleep(5)
-
-jt = driver.find_element_by_xpath("//input[@id = 'KeywordSearch']")
-jt.clear()
-jt.send_keys('Data Scientist')
-
-jl = driver.find_element_by_xpath("//input[@id = 'LocationSearch']")
-jl.clear()
-jl.send_keys('AZ')
-
-searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
-searchbutton.click()
-
-
-
-
-
-states_list = ['Alabama,US',
-               'Alaska,US',
-               'Arizona,US',
-               'Arkansas,US',
-               'California,US',
-               'Colorado,US',
-               'Connecticut,US',
-               'Delaware,US',
-               'Florida,US',
-               'Georgia,US',
-               'Hawaii,US',
-               'Idaho,US',
-               'Illinois,US',
-               'Indiana,US',
-               'Iowa,US',
-               'Kansas,US',
-               'Kentucky,US',
-               'Louisiana,US',
-               'Maine,US',
-               'Maryland,US',
-               'Massachusetts,US',
-               'Michigan,US',
-               'Minnesota,US',
-               'Mississippi,US',
-               'Missouri,US',
-               'Montana,US',
-               'Nebraska,US',
-               'Nevada,US',
-               'New Hampshire,US',
-               'New Jersey,US',
-               'New Mexico,US',
-               'New York,US',
-               'North Carolina,US',
-               'North Dakota,US',
-               'Ohio,US',
-               'Oklahoma,US',
-               'Oregon,US',
-               'Pennsylvania,US',
-               'Rhode Island,US',
-               'South Carolina,US',
-               'South Dakota,US',
-               'Tennessee,US',
-               'Texas,US',
-               'Utah,US',
-               'Vermont,US',
-               'Virginia[upper-alpha 2],US',
-               'Washington,US',
-               'West Virginia,US',
-               'Wisconsin,US',
-               'Wyoming,US',
-               'Washington, DC']
-
