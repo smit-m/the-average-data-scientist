@@ -1,8 +1,4 @@
-# personal-projects
-Projects undertaken in collaboration with Calvin [(@WindRainbow)](https://github.com/WindRainbow)
+# The Average Data Scientist
 
 
-- JP aggregator (dashboarding down the line)
-- kaggle projects
-- datathon projects
-- competitions
+_Work in Progress...Check back later_
