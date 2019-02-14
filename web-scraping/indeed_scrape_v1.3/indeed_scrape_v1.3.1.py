@@ -6,11 +6,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # Setup working directory to script's location
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
+# os.chdir(os.path.dirname(os.path.realpath(__file__)))
+os.chdir('/media/calvin-pc_share/the-average-data-scientist/'
+         'web-scraping/indeed_scrape_v1.3')
 
 
 # Define the 'scrape_basic' function to scrape jobs of one designation from one state at a time
 def scrape_basic(chrome_driver, q_title, q_state, pages):
+
+    """Take in a opened chromedriver window, a single query job title,
+    a single query state name, and a page number to go through the 100 pages
+    of the search and return a list of lists in which contain the basic
+    information of each job from those 100 pages."""
+
     print('\n' + q_title, q_state)
     # Initialize Output List
     output = []
@@ -101,11 +109,17 @@ def scrape_basic(chrome_driver, q_title, q_state, pages):
 
 # Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
 def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
+    """Take in chromedriver's location, chrome options, query titles and
+    states, loop through all combinations of job titles and states'
+    100 pages. Return a single list of lists of job info for each job
+    from the listings."""
+
     output = []
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     for q_title in q_titles:
         for q_state in q_states:
             output += scrape_basic(chrome, q_title, q_state, pages)
+    chrome.quit()
     return output
 
 
