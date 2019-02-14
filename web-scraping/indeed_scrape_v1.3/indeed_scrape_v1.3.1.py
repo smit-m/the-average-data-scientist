@@ -102,7 +102,7 @@ def scrape_basic(chrome_driver, q_title, q_state, pages):
 # Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
 def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
     output = []
-    chrome =  webdriver.Chrome(c_path, chrome_options=c_options)
+    chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     for q_title in q_titles:
         for q_state in q_states:
             output += scrape_basic(chrome, q_title, q_state, pages)
@@ -111,7 +111,7 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
 
 # Read search inputs from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
-    qt = list(i.replace(' ', '+') for i in fh.read().split())
+    qt = list(i.replace(' ', '+') for i in fh.read().split('\n'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().split()
 
