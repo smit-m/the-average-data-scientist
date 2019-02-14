@@ -111,7 +111,7 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
 
 # Read search inputs from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
-    qt = fh.read().split()
+    qt = list(i.replace(' ', '+') for i in fh.read().split())
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().split()
 
