@@ -10,7 +10,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 
 # Define the 'scrape_basic' function to scrape jobs of one designation from one state at a time
-def scrape_basic(chrome_driver, q_title, q_state):
+def scrape_basic(chrome_driver, q_title, q_state, pages):
     print('\n' + q_title, q_state)
     # Initialize Output List
     output = []
@@ -21,7 +21,7 @@ def scrape_basic(chrome_driver, q_title, q_state):
     # Open up 1st search page
     chrome_driver.get(search_url)
     # Loop the scrape 100 times
-    for i in range(1):
+    for i in range(pages):
         # pop window detection #
         try:
             pop_window = chrome_driver.find_element_by_css_selector(
@@ -100,12 +100,12 @@ def scrape_basic(chrome_driver, q_title, q_state):
 
 
 # Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
-def exec_scrape_basic(c_path, c_options, q_titles, q_states):
+def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
     output = []
     chrome =  webdriver.Chrome(c_path, chrome_options=c_options)
     for q_title in q_titles:
         for q_state in q_states:
-            output += scrape_basic(chrome, q_title, q_state)
+            output += scrape_basic(chrome, q_title, q_state, pages)
     return output
 
 
@@ -122,4 +122,4 @@ options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs)
+b_out = exec_scrape_basic(chrome_path, options, qt, qs, pages=1)
