@@ -5,25 +5,11 @@ from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-# Setup Working Directory
+# Setup working directory to script's location
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-# Define Global Variables
-chrome_path = '/usr/bin/chromedriver'
 
-# Configure Headless ChromeDriver
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')
-
-# Read Search Inputs
-with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
-    qt = fh.read().split()
-with open('q_states.txt', 'r', encoding='utf-8') as fh:
-    qs = fh.read().split()
-
-
-# Define basic scrape function to scrape one designation and one state at a time
+# Define the 'scrape_basic' function to scrape jobs of one designation from one state at a time
 def scrape_basic(chrome_driver, q_title, q_state):
     print('\n' + q_title, q_state)
     # Initialize Output List
@@ -113,7 +99,7 @@ def scrape_basic(chrome_driver, q_title, q_state):
     return output
 
 
-# Define function to execute the scrape for basic info
+# Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
 def exec_scrape_basic(c_path, c_options, q_titles, q_states):
     output = []
     chrome =  webdriver.Chrome(c_path, chrome_options=c_options)
@@ -123,4 +109,17 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states):
     return output
 
 
+# Read search inputs from files
+with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
+    qt = fh.read().split()
+with open('q_states.txt', 'r', encoding='utf-8') as fh:
+    qs = fh.read().split()
+
+# Setup ChromeDriver (headless)
+chrome_path = '/usr/bin/chromedriver'
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
+
+# Execute basic scrape
 b_out = exec_scrape_basic(chrome_path, options, qt, qs)
