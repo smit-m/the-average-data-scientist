@@ -1,11 +1,12 @@
 import os
+import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # Setup working directory to script's location
-os.chdir('/media/calvin-pc_share/the-average-data-scientist/'
-         'web-scraping/indeed_scrape_v1.3')
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+# print(os.getcwd())
 
 
 # Define the 'scrape_basic' function to scrape jobs of one designation from one state at a time
