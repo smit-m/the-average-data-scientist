@@ -85,19 +85,20 @@ def scrape_basic(chrome_driver, q_title, q_state, pages):
                            time.strftime("%Y-%m-%d")])
             continue
         # find and press "Next" button #
-        chrome_driver.execute_script("window.scrollTo(0, 100000)")
-        next_b = chrome_driver.find_elements_by_class_name("np")
-        try:
-            if len(next_b) == 2:
-                next_b = next_b[1]
-            else:
-                next_b = next_b[0]
-                if next_b.text == "« Previous":
-                    break
-            next_b.click()
-        except IndexError:
-            print('No more page. Moving on')
-            break
+        if not pages == 1:
+            chrome_driver.execute_script("window.scrollTo(0, 100000)")
+            next_b = chrome_driver.find_elements_by_class_name("np")
+            try:
+                if len(next_b) == 2:
+                    next_b = next_b[1]
+                else:
+                    next_b = next_b[0]
+                    if next_b.text == "« Previous":
+                        break
+                next_b.click()
+            except IndexError:
+                print('No more page. Moving on')
+                break
         # time.sleep(1)
         continue
     return output
