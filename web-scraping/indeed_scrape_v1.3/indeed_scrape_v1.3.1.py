@@ -105,7 +105,7 @@ def scrape_basic(chrome_driver, q_title, q_state, pages):
 
 
 # Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
-def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=100):
+def exec_scrape_basic(c_path, c_options, q_titles, q_states, pages=101):
     """Take in chromedriver's location, chrome options, query titles and
     states, loop through all of the combinations of job titles and states'
     100 pages. Return a single list of lists of job info for each job
@@ -132,4 +132,4 @@ options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs, pages=1)
+b_out = exec_scrape_basic(chrome_path, options, qt, qs)
