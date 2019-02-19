@@ -32,7 +32,6 @@ def close_popup(driver):
     if pop_window:
         try:
             ActionChains(driver).move_to_element(pop_window).click(x_icon).perform()
-            # x_icon.click()
         except sce.ElementNotVisibleException:
             print('-------- ! --------')
     return
