@@ -136,7 +136,7 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
         good_response = load_page(chrome_driver, current_url)
         # end current scrape if page won't load
         if good_response:
-            print(good_response)
+            print('{} | {}'.format(good_response, current_url))
         elif not good_response:
             print('Bad page, moving on...')
             break
@@ -182,4 +182,4 @@ options.add_argument('--disable-gpu')
 chrome_path = '/usr/bin/chromedriver'
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=1)
+b_out = exec_scrape_basic(chrome_path, options, qt, qs)
