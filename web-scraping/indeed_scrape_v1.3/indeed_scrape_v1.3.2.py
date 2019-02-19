@@ -15,8 +15,14 @@ options.add_argument('--disable-gpu')
 chrome_path = '/usr/bin/chromedriver'
 
 
-# Define the 'close_popup' function to find popup window (if exist) and close it
 def close_popup(driver):
+    """
+    This function will detect if there's popup window on the job listing page and will close the
+    window if it exist.
+
+    :param driver: An opened chrome driver session
+    :return:
+    """
     try:
         pop_window = driver.find_element_by_css_selector(
             ".popover.popover-foreground.jobalert-popover")
@@ -29,10 +35,18 @@ def close_popup(driver):
             # x_icon.click()
         except sce.ElementNotVisibleException:
             print('-------- ! --------')
+    return
 
 
-# The 'load page' function will detect bad page and will behave base on it's finding
 def load_page(driver, c_url):
+    """
+    This function is used to ensure the current job listing page is correctly loaded so that
+    the scraping can be successfully executed later on.
+
+    :param driver: An opened chrome driver session
+    :param c_url: Current url for the page that's opened.
+    :return: An web element from the loaded page used as a page load response.
+    """
     close_popup(driver=driver)
     try:
         # Detect the opened page is loaded correctly or not
@@ -57,8 +71,14 @@ def load_page(driver, c_url):
     return page_response
 
 
-# Find next button function finds the 'next' button and clicks on it (if exist)
 def find_next_b(driver):
+    """
+    This function takes in an opened webdriver session and tries to find the 'next' button on
+    the job listing page. It will then click on the button if it exists on the page.
+
+    :param driver: Opened chrome driver session
+    :return: The 'next' button web element (or None if not exist)
+    """
     next_b = driver.find_elements_by_class_name("np")
     if len(next_b) == 2:
         next_b = next_b[1]
@@ -76,8 +96,16 @@ def find_next_b(driver):
     return next_b
 
 
-# Define the function to scrape through each listing page
 def b_scrape_current_page(driver):
+    """
+    This function calls close_popup(), load_page(), and find_next_b() functions, takes in an
+    opened webdriver session with an indeed job listing page loaded, and go through all of the
+    non-sponsored jobs on the page and capture all basic information of those jobs, including
+    title, location, detail page link, and capture timestamp.
+
+    :param driver: Opened chrome driver session
+    :return: A list containing multiple lists with each job's basic info
+    """
     cp_out = []
     # find all LEGIT jobs on current page
     jobs = []
@@ -114,18 +142,22 @@ def b_scrape_current_page(driver):
         location = job.find_element_by_class_name("location").text.replace('\t', ' ') \
             .replace('\n', ' ').strip()
         # gather all information
-        cp_out.append([time.time(), designation1, comp_name, location, page_link,
-                       time.strftime("%Y-%m-%d")])
+        cp_out.append([time.time(), designation1, comp_name, location, page_link])
         continue
     return cp_out
 
 
-# Define the 'scrape_basic' function to scrape jobs of one designation in one state
 def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
-    """Take in a opened chromedriver window, a single query job title,
-    a single query state name, and a page number to go through the 100 pages
-    of the search and return a list of lists in which contain the basic
-    information of each job from those 100 pages."""
+    """
+    This function calls b_scrape_current_page() function and takes in parameters to scrape
+    through 100 (or less) job listing pages from the generated search url.
+
+    :param chrome_driver: Opened chrome driver session
+    :param q_title: One query job title
+    :param q_state: One query state name
+    :param pages_to_search: Desired page number for the function to scrape through
+    :return:
+    """
     print('\n' + q_title.replace('+', ' '), q_state)
     # Initialize Output List
     cs_out = []
@@ -160,12 +192,19 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
     return cs_out
 
 
-# Define the 'exec_scrape_basic' function to execute the 'scrape_basic'
 def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
-    """Take in chromedriver's location, chrome options, query titles and
-    states, loop through all of the combinations of job titles and states'
-    100 pages. Return a single list of lists of job info for each job
-    from the listings."""
+    """
+    This function loops through the required search parameters combinations and then executes
+    the scrape_basic() function to scrape basic information for each of the combinations. It
+    returns a list containing all the data stored in multiple lists.
+
+    :param c_path: Chrome_driver's location
+    :param c_options: Chrome_driver's options
+    :param q_titles: Imported job title list for querying
+    :param q_states: Imported state list for querying
+    :param pts: How many pages to go through for each combination
+    :return: Basic output as a list
+    """
     basic_out = []
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     for q_title in q_titles:
