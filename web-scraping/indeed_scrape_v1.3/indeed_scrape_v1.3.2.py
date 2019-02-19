@@ -81,7 +81,6 @@ def b_scrape_current_page(driver):
         except sce.NoSuchElementException:
             jobs.append(x)
         continue
-    # print('Found {} job(s)\r\n'.format(len(jobs)))
     # extract information from each job
     for job in jobs:
         # find designation title and page link & clean them up
@@ -172,15 +171,15 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
 
 # Read search inputs from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
-    qt = list(i.replace(' ', '+') for i in fh.read().split('\n'))
+    qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
-    qs = fh.read().split()
+    qs = fh.read().strip().split('\n')
 
 # Setup ChromeDriver (headless)
-chrome_path = '/usr/bin/chromedriver'
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
+chrome_path = '/usr/bin/chromedriver'
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs)
+b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=1)
