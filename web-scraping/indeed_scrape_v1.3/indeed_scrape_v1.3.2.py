@@ -19,7 +19,6 @@ def close_popup(driver):
     """
     This function will detect if there's popup window on the job listing page and will close the
     window if it exist.
-
     :param driver: An opened chrome driver session
     :return:
     """
@@ -41,7 +40,6 @@ def load_page(driver, c_url):
     """
     This function is used to ensure the current job listing page is correctly loaded so that
     the scraping can be successfully executed later on.
-
     :param driver: An opened chrome driver session
     :param c_url: Current url for the page that's opened.
     :return: An web element from the loaded page used as a page load response.
@@ -74,7 +72,6 @@ def find_next_b(driver):
     """
     This function takes in an opened webdriver session and tries to find the 'next' button on
     the job listing page. It will then click on the button if it exists on the page.
-
     :param driver: Opened chrome driver session
     :return: The 'next' button web element (or None if not exist)
     """
@@ -101,7 +98,6 @@ def b_scrape_current_page(driver):
     opened webdriver session with an indeed job listing page loaded, and go through all of the
     non-sponsored jobs on the page and capture all basic information of those jobs, including
     title, location, detail page link, and capture timestamp.
-
     :param driver: Opened chrome driver session
     :return: A list containing multiple lists with each job's basic info
     """
@@ -150,7 +146,6 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
     """
     This function calls b_scrape_current_page() function and takes in parameters to scrape
     through 100 (or less) job listing pages from the generated search url.
-
     :param chrome_driver: Opened chrome driver session
     :param q_title: One query job title
     :param q_state: One query state name
@@ -196,7 +191,6 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     This function loops through the required search parameters combinations and then executes
     the scrape_basic() function to scrape basic information for each of the combinations. It
     returns a list containing all the data stored in multiple lists.
-
     :param c_path: Chrome_driver's location
     :param c_options: Chrome_driver's options
     :param q_titles: Imported job title list for querying
