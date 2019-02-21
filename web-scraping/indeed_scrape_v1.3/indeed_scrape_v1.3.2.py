@@ -238,3 +238,12 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 
 # Execute basic scrape
 b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=101)
+
+# Remove duplicates
+
+
+# Test: Store data into MongoDB database
+c_col = MongoClient('calvin-mngd01.calvin.local').tads01.Test
+for item in b_out:
+    result = c_col.insert_one(item)
+    continue
