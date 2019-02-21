@@ -41,8 +41,8 @@ def load_page(driver, c_url, tries=4):
     This function is used to ensure the current job listing page is correctly loaded so that
     the scraping can be successfully executed later on.
     :param driver: An opened chrome driver session
-    :param c_url: Current url for the page that's opened.
-    :return: An web element from the loaded page used as a page load response.
+    :param c_url: Current url for the page that's opened
+    :return: An web element from the loaded page used as a page load response
     """
     close_popup(driver=driver)
     try:
