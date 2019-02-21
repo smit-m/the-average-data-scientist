@@ -136,7 +136,7 @@ def b_scrape_current_page(driver):
             comp_name = job.find_element_by_class_name("company").text.replace('\t', ' ') \
                 .replace('\n', ' ').strip()
         except sce.NoSuchElementException:
-            comp_name = None
+            print('Company name not found')
         else:
             job_out['Company'] = comp_name
         # 2.3: find location & clean it up
@@ -144,7 +144,7 @@ def b_scrape_current_page(driver):
             location = job.find_element_by_class_name("location").text.replace('\t', ' ')\
                 .replace('\n', ' ').strip()
         except sce.NoSuchElementException:
-            location = None
+            print('Location not found')
         else:
             job_out['Location'] = location
         # 2.4: add capture timestamp
