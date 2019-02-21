@@ -36,7 +36,7 @@ def close_popup(driver):
     return
 
 
-def load_page(driver, c_url):
+def load_page(driver, c_url, tries=4):
     """
     This function is used to ensure the current job listing page is correctly loaded so that
     the scraping can be successfully executed later on.
@@ -51,8 +51,7 @@ def load_page(driver, c_url):
     except sce.NoSuchElementException:
         page_response = None
         print('Bad page, try again')
-        # Try to load the page another 4 times
-        tries = 4
+        # Try to load the page another t times
         for t in range(1, tries+1):
             driver.get(c_url)
             close_popup(driver=driver)
