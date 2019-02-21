@@ -237,4 +237,4 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().strip().split('\n')
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs)
+b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=1)
