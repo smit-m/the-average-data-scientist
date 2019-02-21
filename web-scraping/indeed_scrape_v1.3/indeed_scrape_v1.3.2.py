@@ -112,9 +112,9 @@ def b_scrape_current_page(driver):
         continue
     # Step 2: extract information from each job
     for job in jobs:
-        # 2.0 Initiate job_out dictionary for storing data
+        # 2.1 Initiate job_out dictionary for storing data
         job_out = dict()
-        # 2.1: find designation title and page link & clean them up
+        # 2.2: find designation title and page link
         try:  # designation type 1
             designation1 = job.find_element_by_css_selector(".jobtitle.turnstileLink") \
                 .text.replace('\t', ' ').replace('\n', ' ').strip()
@@ -131,7 +131,7 @@ def b_scrape_current_page(driver):
                 page_link = None
         if designation1 and page_link:  # Add data if captured
             job_out['Designation'], job_out['Page_link'] = designation1, page_link
-        # 2.2: find company name & clean it up
+        # 2.3: find company name
         try:
             comp_name = job.find_element_by_class_name("company").text.replace('\t', ' ') \
                 .replace('\n', ' ').strip()
@@ -139,7 +139,7 @@ def b_scrape_current_page(driver):
             print('Company name not found')
         else:
             job_out['Company'] = comp_name
-        # 2.3: find location & clean it up
+        # 2.4: find location
         try:
             location = job.find_element_by_class_name("location").text.replace('\t', ' ')\
                 .replace('\n', ' ').strip()
@@ -147,9 +147,9 @@ def b_scrape_current_page(driver):
             print('Location not found')
         else:
             job_out['Location'] = location
-        # 2.4: add capture timestamp
+        # 2.5: add capture timestamp
         job_out['Time_captured'] = time.time()
-        # 2.5: gather all information and append to output list
+        # 2.6: gather all information and append to output list
         cp_out.append(job_out)
     return cp_out
 
