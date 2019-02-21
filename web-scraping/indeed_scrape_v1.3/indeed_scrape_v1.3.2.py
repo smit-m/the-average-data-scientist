@@ -1,5 +1,6 @@
 import os
 import time
+from pymongo import MongoClient
 from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
@@ -136,7 +137,7 @@ def b_scrape_current_page(driver):
         location = job.find_element_by_class_name("location").text.replace('\t', ' ') \
             .replace('\n', ' ').strip()
         # 2.4: gather all information and append to output list
-        cp_out.append([time.time(), designation1, comp_name, location, page_link])
+        cp_out.append([designation1, comp_name, location, page_link, time.time()])
         continue
     return cp_out
 
