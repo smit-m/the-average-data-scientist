@@ -101,7 +101,7 @@ def b_scrape_current_page(driver):
     :return: A list containing multiple lists with each job's basic info
     """
     cp_out = []
-    # find all LEGIT jobs on current page
+    # Step 1: find all LEGIT jobs on current page
     jobs = []
     for x in driver.find_elements_by_css_selector(".row.result.clickcard"):
         try:
@@ -109,9 +109,9 @@ def b_scrape_current_page(driver):
         except sce.NoSuchElementException:
             jobs.append(x)
         continue
-    # extract information from each job
+    # Step 2: extract information from each job
     for job in jobs:
-        # find designation title and page link & clean them up
+        # 2.1: find designation title and page link & clean them up
         try:  # designation type 1
             designation1 = job.find_element_by_css_selector(".jobtitle.turnstileLink") \
                 .text.replace('\t', ' ').replace('\n', ' ').strip()
@@ -126,16 +126,16 @@ def b_scrape_current_page(driver):
             except sce.NoSuchElementException:  # designation not found
                 designation1 = 'NA'
                 page_link = 'NA'
-        # find company name & clean it up
+        # 2.2: find company name & clean it up
         try:
             comp_name = job.find_element_by_class_name("company").text.replace('\t', ' ') \
                 .replace('\n', ' ').strip()
         except sce.NoSuchElementException:
             comp_name = 'NA'
-        # find location & clean it up
+        # 2.3: find location & clean it up
         location = job.find_element_by_class_name("location").text.replace('\t', ' ') \
             .replace('\n', ' ').strip()
-        # gather all information
+        # 2.4: gather all information and append to output list
         cp_out.append([time.time(), designation1, comp_name, location, page_link])
         continue
     return cp_out
@@ -151,36 +151,41 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
     :param pages_to_search: Desired page number for the function to scrape through
     :return:
     """
+    # Show current query combination
     print('\n' + q_title.replace('+', ' '), q_state)
     # Initialize Output List
     cs_out = []
-    # Initialize search url
+    # Generate search url
     search_url = 'https://www.indeed.com/jobs?q={}&l={}&sort=date'.format(
         q_title, q_state
     )
     # Open up 1st search page
     chrome_driver.get(search_url)
-    # Loop the scrape 100 times
+    # Scrape 100 (or less) pages
     for i in range(pages_to_search):
+        # Get current page's url
         current_url = chrome_driver.current_url
-        # get page response/reload
-        good_response = load_page(chrome_driver, current_url)
-        # end current scrape if page won't load
-        if good_response:
-            print('{} | {}'.format(good_response, current_url))
-        elif not good_response:
+        # Get page load response or try to reload
+        page = load_page(chrome_driver, current_url)
+        # Scrape or break
+        if page:  # if successfully loaded
+            # print current page number and page url
+            print('{} | {}'.format(page, current_url))
+            # scrape current page
+            cs_out += b_scrape_current_page(chrome_driver)
+            # find and press "next" button
+            if not pages_to_search == 1:
+                next_b = find_next_b(chrome_driver)
+                if next_b:
+                    next_b.click()
+                elif not next_b:
+                    break
+            # optional sleep
+            time.sleep(0)
+        elif not page:  # if current page won't load
+            # end the entire scrape loop
             print('Bad page, moving on...')
             break
-        # scrape current page
-        cs_out += b_scrape_current_page(chrome_driver)
-        # Find and press "next" button
-        if not pages_to_search == 1:
-            next_b = find_next_b(chrome_driver)
-            if next_b:
-                next_b.click()
-            elif not next_b:
-                break
-        # time.sleep(1)
         continue
     return cs_out
 
@@ -197,16 +202,22 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
+    # Initialize output list
     basic_out = []
+    # Open up a chrome driver session
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
+    # Loop through all query combinations and scrape
     for q_title in q_titles:
         for q_state in q_states:
+            # Scrape current page and add the data to the output list
             basic_out += scrape_basic(chrome, q_title, q_state, pts)
+    # Scrape complete, quit chrome
     chrome.quit()
+    # Return final scrape data
     return basic_out
 
 
-# Read search inputs from files
+# Read query input from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
     qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
