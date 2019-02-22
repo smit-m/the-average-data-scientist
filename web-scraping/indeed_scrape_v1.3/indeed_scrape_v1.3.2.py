@@ -191,7 +191,11 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
             if not pages_to_search == 1:
                 next_b = find_next_b(chrome_driver)
                 if next_b:
-                    next_b.click()
+                    try:
+                        next_b.click()
+                    except sce.WebDriverException:
+                        print('\r\nNEXT BUTTON NOT CLICKABLE, MOVING ON...\r\n')
+                        break
                 elif not next_b:
                     break
             # optional sleep
