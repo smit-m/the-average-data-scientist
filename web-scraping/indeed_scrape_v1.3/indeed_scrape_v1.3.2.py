@@ -249,11 +249,9 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
 
 
 def write_to_db(db_cred_file, input_list):
-    # Read db connection credentials
-    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        db_cred = fhand.read().strip()
     # Connect to db
-    collection = MongoClient(db_cred).tads01.Test
+    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
+        collection = MongoClient(fhand.read().strip()).tads01.Test
     # Get url list from db
     db_url_ls = tuple(i['Page_link'] for i in
                       collection.find({}, {"Page_link": 1, "_id": 0})
