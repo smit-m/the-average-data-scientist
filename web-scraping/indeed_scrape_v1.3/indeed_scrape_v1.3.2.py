@@ -216,17 +216,26 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
-    # Initialize output list
-    basic_out = []
+    # Initialize output lists
+    basic_out = list()
+    basic_out_temp = list()
     # Open up a chrome driver session
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     # Loop through all query combinations and scrape
     for q_title in q_titles:
         for q_state in q_states:
             # Scrape current page and add the data to the output list
-            basic_out += scrape_basic(chrome, q_title, q_state, pts)
+            basic_out_temp += scrape_basic(chrome, q_title, q_state, pts)
     # Scrape complete, quit chrome
     chrome.quit()
+    # Remove duplicates (base on url)
+    uniq_urls = list()
+    for j in basic_out_temp:
+        if j['Page_link'] not in uniq_urls:
+            basic_out.append(j)
+            uniq_urls.append(j['Page_link'])
+        else:
+            continue
     # Return final scrape data
     return basic_out
 
@@ -240,11 +249,14 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 # Execute basic scrape
 b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=101)
 
-# Remove duplicates
-
-
 # Test: Store data into MongoDB database
 collection = MongoClient('calvin-mngd01.calvin.local').tads01.Test
+db_url_ls = tuple(i['Page_link'] for i in
+                  collection.find({}, {"Page_link":1, "_id":0}) if len(i) > 0)
+insert_counter = 0
 for item in b_out:
-    result = collection.insert_one(item)
+    if item['Page_link'] not in db_url_ls:
+        result = collection.insert_one(item)
+        insert_counter += 1
     continue
+print('\r\n{} new job(s) inserted.\r\n'.format(insert_counter))
