@@ -219,6 +219,8 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     # Initialize output lists
     basic_out = list()
     basic_out_temp = list()
+    # Record start time
+    start_time = time.time()
     # Open up a chrome driver session
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     # Loop through all query combinations and scrape
@@ -236,6 +238,8 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
             uniq_urls.append(j['Page_link'])
         else:
             continue
+    # Print total run time
+    print('\r\nRun time: {} seconds\r\n'.format(time.time()-start_time))
     # Return final scrape data
     return basic_out
 
