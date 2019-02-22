@@ -239,7 +239,7 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
         else:
             continue
     # Print total run time
-    print('\r\nRun time: {} seconds\r\n'.format(time.time()-start_time))
+    print('\r\nRun time: {} seconds\r\n'.format(int(time.time()-start_time)))
     # Return final scrape data
     return basic_out
 
