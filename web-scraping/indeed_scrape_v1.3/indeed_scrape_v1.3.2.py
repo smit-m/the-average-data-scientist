@@ -93,7 +93,7 @@ def find_next_b(driver):
     return next_b
 
 
-def b_scrape_current_page(driver):
+def scrape_basic_current_page(driver):
     """
     This function calls close_popup(), load_page(), and find_next_b() functions, takes in an
     opened webdriver session with an indeed job listing page loaded, and go through all of the
@@ -186,7 +186,7 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
             # print current page number and page url
             print('{} | {}'.format(page, current_url))
             # scrape current page
-            cs_out += b_scrape_current_page(chrome_driver)
+            cs_out += scrape_basic_current_page(chrome_driver)
             # find and press "next" button
             if not pages_to_search == 1:
                 next_b = find_next_b(chrome_driver)
