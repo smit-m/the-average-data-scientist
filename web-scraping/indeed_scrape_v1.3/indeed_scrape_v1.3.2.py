@@ -240,6 +240,27 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     return basic_out
 
 
+def write_to_db(db_cred_file, input_list):
+    # Read db connection credentials
+    with open(db_cred_file, 'r', encoding='utf-8') as fh:
+        db_cred = fh.read().strip()
+    # Connect to db
+    collection = MongoClient(db_cred).tads01.Test
+    # Get url list from db
+    db_url_ls = tuple(i['Page_link'] for i in
+                      collection.find({}, {"Page_link": 1, "_id": 0})
+                      if len(i) > 0)
+    # Initiate insert counter
+    insert_counter = 0
+    # Insert new data to db
+    for item in input_list:
+        if item['Page_link'] not in db_url_ls:
+            result = collection.insert_one(item)
+            insert_counter += 1
+        continue
+    return insert_counter
+
+
 # Read query input from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
     qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
@@ -249,14 +270,6 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 # Execute basic scrape
 b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=101)
 
-# Test: Store data into MongoDB database
-collection = MongoClient('calvin-mngd01.calvin.local').tads01.Test
-db_url_ls = tuple(i['Page_link'] for i in
-                  collection.find({}, {"Page_link":1, "_id":0}) if len(i) > 0)
-insert_counter = 0
-for item in b_out:
-    if item['Page_link'] not in db_url_ls:
-        result = collection.insert_one(item)
-        insert_counter += 1
-    continue
-print('\r\n{} new job(s) inserted.\r\n'.format(insert_counter))
+# Store scraped data into MongoDB database
+print('\r\n{} new job(s) inserted.\r\n'.format(
+    write_to_db('.dbcredential', b_out)))
