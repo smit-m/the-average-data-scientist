@@ -246,8 +246,8 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
 
 def write_to_db(db_cred_file, input_list):
     # Read db connection credentials
-    with open(db_cred_file, 'r', encoding='utf-8') as fh:
-        db_cred = fh.read().strip()
+    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
+        db_cred = fhand.read().strip()
     # Connect to db
     collection = MongoClient(db_cred).tads01.Test
     # Get url list from db
@@ -259,7 +259,7 @@ def write_to_db(db_cred_file, input_list):
     # Insert new data to db
     for item in input_list:
         if item['Page_link'] not in db_url_ls:
-            result = collection.insert_one(item)
+            collection.insert_one(item)
             insert_counter += 1
         continue
     return insert_counter
