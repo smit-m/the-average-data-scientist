@@ -1,4 +1,3 @@
-
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from fake_useragent import UserAgent
@@ -22,6 +21,7 @@ driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=
 
 states_list = open('states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
+
 
 states = states_list.read().split('\n')
 jobs = jobs_list.read().split('\n')
