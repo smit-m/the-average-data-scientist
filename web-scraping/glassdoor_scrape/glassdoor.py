@@ -170,8 +170,6 @@ l.close()
 driver.close()
 
 
-# er[heir[ihqeqw]]
+
 
 ### Filter out "Indeed Prime" from the company field
-
-###################
