@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 
 
-def start_search_session(c_path, c_options, dcap=None, sargs=None, tries=5):
+def start_search_session(c_path, c_options, dcap, sargs, tries=5):
     """
     This function tries to open the glassdoor search window. If it detects login page, it will
     then close the chrome session and opens another one to try the luck. After a number of
@@ -23,17 +23,13 @@ def start_search_session(c_path, c_options, dcap=None, sargs=None, tries=5):
     :return: A correctly opened search window or NoneType
     """
     for i in range(tries):
-        if dcap and sargs:
-            chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
-                                              desired_capabilities=dcap,
-                                              service_args=sargs)
-        else:
-            chrome_session = webdriver.Chrome(c_path, chrome_options=c_options)
+        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
+                                          desired_capabilities=dcap,
+                                          service_args=sargs)
         chrome_session.get('https://www.glassdoor.com/index.htm')
         try:
             chrome_session.find_element_by_css_selector(
-                        '.lockedSignUp.d-flex.align-items-center.justify-content-center.flex-column.center'
-                    )
+                '.lockedSignUp.d-flex.align-items-center.justify-content-center.flex-column.center')
         except sce.NoSuchElementException:
             return chrome_session
         else:
