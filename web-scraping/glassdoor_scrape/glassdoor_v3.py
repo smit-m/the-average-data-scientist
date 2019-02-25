@@ -23,24 +23,27 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=5):
     :return: A correctly opened search window or NoneType
     """
     for i in range(1, tries+1):
+        # Create Chrome webdriver session
         chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
                                           desired_capabilities=dcap,
                                           service_args=sargs)
+        # Get search page
         chrome_session.get('https://www.glassdoor.com/index.htm')
-        try:
+        try:  # Detect bad page
             chrome_session.find_element_by_css_selector(
                 '.lockedSignUp.d-flex.align-items-center.justify-content-center.flex-column.center')
-        except sce.NoSuchElementException:
+        except sce.NoSuchElementException:  # Return chrome session if bad page sign NOT found
             return chrome_session
-        else:
+        else:  # Close bad search window and try again if bad page detected
             print("Bad page x{}. Try again".format(i))
             chrome_session.quit()
             continue
+    # Return NoneType if all tries failed
     print('Cannot load search page.')
     return None
 
 
-# Make browser
+# Configure Chrome driver
 ua = UserAgent()
 dcap = dict(DesiredCapabilities.PHANTOMJS)
 dcap["phantomjs.page.settings.userAgent"] = ua.random
