@@ -260,7 +260,6 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, db_cred_file, pts=1
                                                    out=basic_out,
                                                    new_urls=new_urls,
                                                    pages_to_search=pts)
-
     # Scrape complete, quit chrome
     chrome.quit()
     # Print total run time
@@ -287,5 +286,5 @@ new_job_count = exec_scrape_basic(c_path=chrome_path,
                                   q_titles=qt,
                                   q_states=qs,
                                   db_cred_file='.dbcredential',
-                                  pts=1)
+                                  pts=101)
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
