@@ -44,7 +44,7 @@ def load_page(driver, c_url, tries=4):
     :param driver: An opened chrome driver session
     :param c_url: Current url for the page that's opened
     :param tries: Number of times should the script tries to reload the page when page error detected
-    :return: An web element from the loaded page used as a page load response
+    :return: A web element from the loaded page used as a page load response
     """
     close_popup(driver=driver)
     try:
