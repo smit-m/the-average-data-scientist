@@ -16,10 +16,11 @@ dcap["phantomjs.page.settings.userAgent"] = (ua.random)
 service_args=['--ssl-protocol=any','--ignore-ssl-errors=true']
 options = Options()
 options.add_argument("--disable-notifications")
+options.add_argument("--incognito")
 driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=service_args,chrome_options=options)
 
 
-states_list = open('states_list.txt', 'r')
+states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 
@@ -46,17 +47,17 @@ srno = 0
 for jobtitle in jobs:
     for s in states:
         l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
-        driver.get('https://www.glassdoor.com/index.htm')
+        driver.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
         time.sleep(3)
         
         
         #look for the keyword input box
-        jt = driver.find_element_by_xpath("//input[@id = 'KeywordSearch']")
+        jt = driver.find_element_by_xpath("//input[@id = 'sc.keyword']")
         jt.clear()
         jt.send_keys(jobtitle)
         
         #look for the location input box
-        jl = driver.find_element_by_xpath("//input[@id = 'LocationSearch']")
+        jl = driver.find_element_by_xpath("//input[@id = 'sc.location']")
         jl.clear()
         jl.send_keys(s)
         
