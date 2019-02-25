@@ -4,20 +4,55 @@ from fake_useragent import UserAgent
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 import time
 
 
-#make browser
-ua=UserAgent()
+def start_search_session(c_path, c_options, dcap=None, sargs=None, tries=5):
+    """
+    This function tries to open the glassdoor search window. If it detects login page, it will
+    then close the chrome session and opens another one to try the luck. After a number of
+    tries, it either returns the correctly opened search window or return a NoneType as a
+    deciding factor for later operations.
+    :param c_path: Path to chromedriver
+    :param c_options: Chrome options variable
+    :param dcap: Chrome driver's desired_capabilities
+    :param sargs: Chrome driver's service arguments
+    :param tries: How many times should the function try to obtain the search page
+    :return: A correctly opened search window or NoneType
+    """
+    for i in range(tries):
+        if dcap and sargs:
+            chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
+                                              desired_capabilities=dcap,
+                                              service_args=sargs)
+        else:
+            chrome_session = webdriver.Chrome(c_path, chrome_options=c_options)
+        chrome_session.get('https://www.glassdoor.com/index.htm')
+        try:
+            chrome_session.find_element_by_css_selector(
+                        '.lockedSignUp.d-flex.align-items-center.justify-content-center.flex-column.center'
+                    )
+        except sce.NoSuchElementException:
+            return chrome_session
+        else:
+            print("Bad page x{}. Try again".format(i+1))
+            chrome_session.quit()
+            continue
+    print('Cannot load search page.')
+    return None
+
+
+# Make browser
+ua = UserAgent()
 dcap = dict(DesiredCapabilities.PHANTOMJS)
-dcap["phantomjs.page.settings.userAgent"] = (ua.random)
-service_args=['--ssl-protocol=any','--ignore-ssl-errors=true']
+dcap["phantomjs.page.settings.userAgent"] = ua.random
+service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
-driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=service_args,chrome_options=options)
-
+chrome_path = 'chromedriver'
 
 states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
@@ -46,7 +81,14 @@ srno = 0
 for jobtitle in jobs:
     for s in states:
         l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
-        driver.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
+        # driver.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
+        driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
+                                      sargs=service_args)
+        if driver:
+            print('Good page obtained. Scrape on')
+        elif not driver:
+            print('Bad page. Do something')
+            break
         time.sleep(3)
         
         
@@ -160,13 +202,14 @@ for jobtitle in jobs:
             except:
                 #Going through the next iteration of state as end of pages is reached
                 break
+        # Close current chrome session after each search combination finishes
+        driver.close()
         
 
 
 global_jobURLs.clear()
 f.close()
 l.close()
-driver.close()
 
 
 ### Filter out "Indeed Prime" from the company field
