@@ -170,8 +170,4 @@ l.close()
 driver.close()
 
 
-
-print('def')
-print("ABC")
-
 ### Filter out "Indeed Prime" from the company field
