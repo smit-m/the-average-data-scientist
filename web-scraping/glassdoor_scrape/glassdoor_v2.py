@@ -6,7 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import time
-import math
 
 
 #make browser
@@ -77,8 +76,6 @@ for jobtitle in jobs:
             
         if jobs == 0:
             pages = 0
-        elif jobs < 901:
-            pages = math.ceil(jobs/30)
         else:
             pages = 30
             
@@ -155,13 +152,13 @@ for jobtitle in jobs:
                 counter = counter + 1
                 
             print(s + ' : Page ' + str(p+1) + ' done')
-            if p == pages-1:
+            #Clicking on the "Next" button if it exists
+            nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
+            try:
+                nextbutton[0].click()
+            except:
                 #Going through the next iteration of state as end of pages is reached
                 break
-            else:
-                #Clicking on the "Next" button
-                nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
-                nextbutton[0].click()
         
 
 
