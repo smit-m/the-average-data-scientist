@@ -93,16 +93,18 @@ def find_next_b(driver):
     return next_b
 
 
-def scrape_basic_current_page(driver):
+def scrape_basic_1(driver, db_urls, out, new_urls):
     """
     This function calls close_popup(), load_page(), and find_next_b() functions, takes in an
     opened webdriver session with an indeed job listing page loaded, and go through all of the
     non-sponsored jobs on the page and capture all basic information of those jobs, including
     title, location, detail page link, and capture timestamp.
     :param driver: Opened chrome driver session
+    :param db_urls:
+    :param out:
+    :param new_urls:
     :return: A list containing multiple lists with each job's basic info
     """
-    cp_out = []
     # Step 1: find all LEGIT jobs on current page
     jobs = []
     for x in driver.find_elements_by_css_selector(".row.result.clickcard"):
@@ -131,7 +133,13 @@ def scrape_basic_current_page(driver):
                 designation1 = None
                 page_link = None
         if designation1 and page_link:  # Add data if captured
-            job_out['Designation'], job_out['Page_link'] = designation1, page_link
+            if page_link in db_urls.union(new_urls):  # Check for duplicate
+                continue
+            elif page_link not in db_urls.union(new_urls):
+                job_out['Designation'], job_out['URL'] = designation1, page_link
+                new_urls.add(page_link)
+        else:  # Break if designation or page_link not found
+            continue
         # 2.3: find company name
         try:
             comp_name = job.find_element_by_class_name("company").text.replace('\t', ' ') \
@@ -150,29 +158,31 @@ def scrape_basic_current_page(driver):
             job_out['Location'] = location
         # 2.5: add capture timestamp
         job_out['Time_captured'] = time.time()
-        # 2.6: gather all information and append to output list
-        cp_out.append(job_out)
-    return cp_out
+        # 2.6: add source
+        job_out['Source'] = 'Indeed'
+        # 2.7: gather all information and append to output list
+        out.append(job_out)
+    return out, new_urls
 
 
-def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
+def scrape_basic_100(chrome_driver, q_title, q_state, db_urls, out, new_urls, pages_to_search):
     """
     This function calls b_scrape_current_page() function and takes in parameters to scrape
     through 100 (or less) job listing pages from the generated search url.
     :param chrome_driver: Opened chrome driver session
     :param q_title: One query job title
     :param q_state: One query state name
+    :param db_urls:
+    :param out:
+    :param new_urls:
     :param pages_to_search: Desired page number for the function to scrape through
     :return:
     """
     # Show current query combination
     print('\n' + q_title.replace('+', ' '), q_state)
-    # Initialize Output List
-    cs_out = []
     # Generate search url
     search_url = 'https://www.indeed.com/jobs?q={}&l={}&sort=date'.format(
-        q_title, q_state
-    )
+        q_title, q_state)
     # Open up 1st search page
     chrome_driver.get(search_url)
     # Scrape 100 (or less) pages
@@ -180,13 +190,17 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
         # Get current page's url
         current_url = chrome_driver.current_url
         # Get page load response or try to reload
-        page = load_page(chrome_driver, current_url)
+        page = load_page(chrome_driver, current_url, tries=9)
         # Scrape or break
         if page:  # if successfully loaded
             # print current page number and page url
             print('{} | {}'.format(page, current_url))
             # scrape current page
-            cs_out += scrape_basic_current_page(chrome_driver)
+            out, new_urls = scrape_basic_1(chrome_driver,
+                                           db_urls=db_urls,
+                                           out=out,
+                                           new_urls=new_urls)
+            # print(len(db_urls), len(new_urls))
             # find and press "next" button
             if not pages_to_search == 1:
                 next_b = find_next_b(chrome_driver)
@@ -205,10 +219,10 @@ def scrape_basic(chrome_driver, q_title, q_state, pages_to_search):
             print('Bad page, moving on...')
             break
         continue
-    return cs_out
+    return out, new_urls
 
 
-def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
+def exec_scrape_basic(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     """
     This function loops through the required search parameters combinations and then executes
     the scrape_basic() function to scrape basic information for each of the combinations. It
@@ -216,13 +230,21 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     :param c_path: Chrome_driver's location
     :param c_options: Chrome_driver's options
     :param q_titles: Imported job title list for querying
+    :param db_cred_file:
     :param q_states: Imported state list for querying
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
-    # Initialize output lists
+    # Connect to database
+    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
+        collection = MongoClient(fhand.read().strip()).tads01.Test
+    # Get url list from db
+    db_urls = set(
+        i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0})
+        if len(i) > 0)
+    # Initiate local variables
+    new_urls = set()
     basic_out = list()
-    basic_out_temp = list()
     # Record start time
     start_time = time.time()
     # Open up a chrome driver session
@@ -231,38 +253,24 @@ def exec_scrape_basic(c_path, c_options, q_titles, q_states, pts=101):
     for q_title in q_titles:
         for q_state in q_states:
             # Scrape current page and add the data to the output list
-            basic_out_temp += scrape_basic(chrome, q_title, q_state, pts)
+            basic_out, new_urls = scrape_basic_100(chrome_driver=chrome,
+                                                   q_title=q_title,
+                                                   q_state=q_state,
+                                                   db_urls=db_urls,
+                                                   out=basic_out,
+                                                   new_urls=new_urls,
+                                                   pages_to_search=pts)
+
     # Scrape complete, quit chrome
     chrome.quit()
-    # Remove duplicates (base on url)
-    uniq_urls = list()
-    for j in basic_out_temp:
-        if j['Page_link'] not in uniq_urls:
-            basic_out.append(j)
-            uniq_urls.append(j['Page_link'])
-        else:
-            continue
     # Print total run time
     print('\r\nRun time: {} seconds\r\n'.format(int(time.time()-start_time)))
-    # Return final scrape data
-    return basic_out
-
-
-def write_to_db(db_cred_file, input_list):
-    # Connect to db
-    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        collection = MongoClient(fhand.read().strip()).tads01.Test
-    # Get url list from db
-    db_url_ls = tuple(i['Page_link'] for i in
-                      collection.find({}, {"Page_link": 1, "_id": 0})
-                      if len(i) > 0)
     # Initiate insert counter
     insert_counter = 0
     # Insert new data to db
-    for item in input_list:
-        if item['Page_link'] not in db_url_ls:
-            collection.insert_one(item)
-            insert_counter += 1
+    for item in basic_out:
+        collection.insert_one(item)
+        insert_counter += 1
         continue
     return insert_counter
 
@@ -274,8 +282,10 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().strip().split('\n')
 
 # Execute basic scrape
-b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=101)
-
-# Store scraped data into MongoDB database
-print('\r\n{} new job(s) inserted.\r\n'.format(
-    write_to_db('.dbcredential', b_out)))
+new_job_count = exec_scrape_basic(c_path=chrome_path,
+                                  c_options=options,
+                                  q_titles=qt,
+                                  q_states=qs,
+                                  db_cred_file='.dbcredential',
+                                  pts=1)
+print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
