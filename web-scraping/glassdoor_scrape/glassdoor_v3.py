@@ -22,7 +22,7 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=5):
     :param tries: How many times should the function try to obtain the search page
     :return: A correctly opened search window or NoneType
     """
-    for i in range(tries):
+    for i in range(1, tries+1):
         chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
                                           desired_capabilities=dcap,
                                           service_args=sargs)
@@ -33,7 +33,7 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=5):
         except sce.NoSuchElementException:
             return chrome_session
         else:
-            print("Bad page x{}. Try again".format(i+1))
+            print("Bad page x{}. Try again".format(i))
             chrome_session.quit()
             continue
     print('Cannot load search page.')
