@@ -138,7 +138,7 @@ def scrape_basic_1(driver, db_urls, out, new_urls):
             elif page_link not in db_urls.union(new_urls):
                 job_out['Designation'], job_out['URL'] = designation1, page_link
                 new_urls.add(page_link)
-        else:  # Break if designation or page_link not found
+        else:  # Skip if designation or page_link not found
             continue
         # 2.3: find company name
         try:
@@ -222,7 +222,7 @@ def scrape_basic_100(chrome_driver, q_title, q_state, db_urls, out, new_urls, pa
     return out, new_urls
 
 
-def exec_scrape_basic(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
+def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     """
     This function loops through the required search parameters combinations and then executes
     the scrape_basic() function to scrape basic information for each of the combinations. It
@@ -281,10 +281,10 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().strip().split('\n')
 
 # Execute basic scrape
-new_job_count = exec_scrape_basic(c_path=chrome_path,
-                                  c_options=options,
-                                  q_titles=qt,
-                                  q_states=qs,
-                                  db_cred_file='.dbcredential',
-                                  pts=101)
+new_job_count = exec_scrape(c_path=chrome_path,
+                            c_options=options,
+                            q_titles=qt,
+                            q_states=qs,
+                            db_cred_file='.dbcredential',
+                            pts=101)
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
