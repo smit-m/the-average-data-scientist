@@ -19,7 +19,7 @@ options.add_argument("--incognito")
 driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=service_args,chrome_options=options)
 
 
-states_list = open('states_list.txt', 'r')
+states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 
