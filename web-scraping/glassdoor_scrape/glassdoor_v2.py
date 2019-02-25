@@ -19,7 +19,7 @@ options.add_argument("--incognito")
 driver = webdriver.Chrome('chromedriver',desired_capabilities=dcap,service_args=service_args,chrome_options=options)
 
 
-states_list = open('temp_states_list.txt', 'r')
+states_list = open('states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 
@@ -152,9 +152,10 @@ for jobtitle in jobs:
                 counter = counter + 1
                 
             print(s + ' : Page ' + str(p+1) + ' done')
-            #Clicking on the "Next" button if it exists
+            
             nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
             try:
+                #Clicking on the "Next" button if it exists
                 nextbutton[0].click()
             except:
                 #Going through the next iteration of state as end of pages is reached
