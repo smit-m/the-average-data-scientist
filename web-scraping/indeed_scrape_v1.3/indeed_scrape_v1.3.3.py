@@ -279,5 +279,3 @@ b_out = exec_scrape_basic(chrome_path, options, qt, qs, pts=101)
 # Store scraped data into MongoDB database
 print('\r\n{} new job(s) inserted.\r\n'.format(
     write_to_db('.dbcredential', b_out)))
-
-# Test
