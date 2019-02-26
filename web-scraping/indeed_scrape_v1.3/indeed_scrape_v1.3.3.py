@@ -319,7 +319,6 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                              pages_to_search=pts)
             # Show accumulative total of new jobs obtained after current scrape
             print('(Accumulative total: {})'.format(len(fnl_out)))
-            break
     # Scrape detail & update basic_out
     for job in fnl_out:
         scrape_detail_1(chrome, job)
@@ -360,7 +359,7 @@ new_job_count = exec_scrape(c_path=chrome_path,
                             q_titles=qt,
                             q_states=qs,
                             db_cred_file='.dbcredential',
-                            pts=5)
+                            pts=101)
 
 # Show the number of documents inserted into the database
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
