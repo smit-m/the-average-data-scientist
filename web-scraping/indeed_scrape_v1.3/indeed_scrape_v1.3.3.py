@@ -162,7 +162,7 @@ def scrape_basic_1(driver, out, existing_urls):
         job_out['Source'] = 'Indeed'
         # 2.7: gather all information and append to output list
         out.append(job_out)
-    return out, existing_urls
+    return
 
 
 def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_to_search):
@@ -195,9 +195,9 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
             # print current page number and page url
             print('{} | {}'.format(page, current_url))
             # scrape current page
-            out, existing_urls = scrape_basic_1(chrome_driver,
-                                                out=out,
-                                                existing_urls=existing_urls)
+            scrape_basic_1(chrome_driver,
+                           out=out,
+                           existing_urls=existing_urls)
             # find and press "next" button
             if not pages_to_search == 1:
                 next_b = find_next_b(chrome_driver)
@@ -216,7 +216,7 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
             print('Bad page, moving on...')
             break
         continue
-    return out, existing_urls
+    return
 
 
 def scrape_detail_1(chrome_driver, job_dict, tries=3):
@@ -333,14 +333,14 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     for q_title in q_titles:
         for q_state in q_states:
             # Scrape current page and add the data to the output list
-            fnl_out, e_urls = scrape_basic_100(chrome_driver=chrome,
-                                               q_title=q_title,
-                                               q_state=q_state,
-                                               existing_urls=e_urls,
-                                               out=fnl_out,
-                                               pages_to_search=pts)
+            scrape_basic_100(chrome_driver=chrome,
+                             q_title=q_title,
+                             q_state=q_state,
+                             out=fnl_out,
+                             existing_urls=e_urls,
+                             pages_to_search=pts)
+            # Show accumulative total of new jobs obtained after current scrape
             print('(Accumulative total: {})'.format(len(fnl_out)))
-            # break
     # Scrape detail & update basic_out
     for job in fnl_out:
         scrape_detail_1(chrome, job)
@@ -371,4 +371,5 @@ new_job_count = exec_scrape(c_path=chrome_path,
                             q_states=qs,
                             db_cred_file='.dbcredential',
                             pts=101)
+# Show the number of documents inserted into the database
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
