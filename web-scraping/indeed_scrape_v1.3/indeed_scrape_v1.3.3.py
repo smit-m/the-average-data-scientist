@@ -339,7 +339,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                                                existing_urls=e_urls,
                                                out=fnl_out,
                                                pages_to_search=pts)
-            print(len(fnl_out))
+            print('({})'.format(len(fnl_out)))
             # break
     # Scrape detail & update basic_out
     for job in fnl_out:
