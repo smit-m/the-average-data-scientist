@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 
 
-def start_search_session(c_path, c_options, dcap, sargs, tries=5):
+def start_search_session(c_path, c_options, dcap, sargs, tries=20):
     """
     This function tries to open the glassdoor search window. If it detects login page, it will
     then close the chrome session and opens another one to try the luck. After a number of
