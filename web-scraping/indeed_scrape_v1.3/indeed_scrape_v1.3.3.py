@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 
@@ -321,13 +320,13 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
             print('(Accumulative total: {})'.format(len(fnl_out)))
     # Initiate insert counter
     insert_counter = 0
-    # Scrape detail & upload to db
+    # Scrape detail information & upload each entry to db
     for job in fnl_out:
         scrape_detail_1(chrome, job)
         # Show progress
         print('(#{}/{})'.format(fnl_out.index(job)+1, len(fnl_out)))
         # Insert basic data to db
-        collection.insert_one(item)
+        collection.insert_one(job)
         insert_counter += 1
         continue
     # Scrape complete, quit chrome
