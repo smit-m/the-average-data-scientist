@@ -7,15 +7,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 
-# Setup working directory to script's location
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-# Setup ChromeDriver (headless)
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')
-chrome_path = '/usr/bin/chromedriver'
-
 
 def close_popup(driver):
     """
@@ -305,9 +296,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
 
 def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     """
-    This function loops through the required search parameters combinations and then executes
-    the scrape_basic() function to scrape basic information for each of the combinations. It
-    returns a list containing all the data stored in multiple lists.
+
     :param c_path: Chrome_driver's location
     :param c_options: Chrome_driver's options
     :param q_titles: Imported job title list for querying
@@ -360,18 +349,28 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     return insert_counter
 
 
-# Read query input from files
+# Setup working directory to script's location
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+# Read query inputs from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
     qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
     qs = fh.read().strip().split('\n')
 
-# Execute basic scrape
+# Configure ChromeDriver (headless)
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
+chrome_path = '/usr/bin/chromedriver'
+
+# Execute scrape
 new_job_count = exec_scrape(c_path=chrome_path,
                             c_options=options,
                             q_titles=qt,
                             q_states=qs,
                             db_cred_file='.dbcredential',
                             pts=101)
+
 # Show the number of documents inserted into the database
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
