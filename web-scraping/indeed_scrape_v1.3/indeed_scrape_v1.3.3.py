@@ -266,7 +266,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
             print("Cannot find job's original page link")
         # Find and calculate time posted
         for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
-            stat_s = i.strip.lower().replace('\t', '').replace('\n', '')
+            stat_s = i.strip().lower().replace('\t', '').replace('\n', '')
             if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
                     or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
                     or ' month ago' in stat_s:
@@ -319,6 +319,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                              pages_to_search=pts)
             # Show accumulative total of new jobs obtained after current scrape
             print('(Accumulative total: {})'.format(len(fnl_out)))
+            break
     # Scrape detail & update basic_out
     for job in fnl_out:
         scrape_detail_1(chrome, job)
@@ -359,7 +360,7 @@ new_job_count = exec_scrape(c_path=chrome_path,
                             q_titles=qt,
                             q_states=qs,
                             db_cred_file='.dbcredential',
-                            pts=101)
+                            pts=5)
 
 # Show the number of documents inserted into the database
 print('\r\n{} new job(s) inserted.\r\n'.format(new_job_count))
