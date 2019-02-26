@@ -77,19 +77,22 @@ f = open('glassdoor.txt', 'a')
 
 global_jobURLs = []
 srno = 0
+
+# Search page load detection
+driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
+                              sargs=service_args)
+if driver:
+    print('Good search page obtained')
+elif not driver:
+    print('Bad search page. Moving on')
+time.sleep(3)
+
+
 for jobtitle in jobs:
     for s in states:
         l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
         # driver.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
-        # Search page load detection
-        driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
-                                      sargs=service_args)
-        if driver:
-            print('Good search page obtained')
-        elif not driver:
-            print('Bad search page. Moving on')
-            break
-        time.sleep(3)
+        
         
         
         #look for the keyword input box
