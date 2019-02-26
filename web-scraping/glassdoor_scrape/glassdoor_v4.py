@@ -28,7 +28,7 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=5):
                                           desired_capabilities=dcap,
                                           service_args=sargs)
         # Get search page
-        chrome_session.get('https://www.glassdoor.com/index.htm')
+        chrome_session.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
         try:  # Detect bad page
             chrome_session.find_element_by_css_selector(
                 '.lockedSignUp.d-flex.align-items-center.justify-content-center.flex-column.center')
