@@ -205,14 +205,14 @@ for jobtitle in jobs:
             except:
                 #Going through the next iteration of state as end of pages is reached
                 break
-        # Close current chrome session after each search combination finishes
-        driver.close()
+        
         
 
 
 global_jobURLs.clear()
 f.close()
 l.close()
-
+# Close current chrome session after each search combination finishes
+driver.close()
 
 ### Filter out "Indeed Prime" from the company field
