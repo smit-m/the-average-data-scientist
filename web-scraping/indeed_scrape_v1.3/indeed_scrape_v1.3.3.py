@@ -276,7 +276,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
             item = i.strip().lower()
             if 'hour' in item or 'day' in item or 'minute' in item or 'now' in item:
                 stat_s = item.strip().replace('\t', '').replace('\n', '')
-                print(stat_s)
+                print(stat_s, end=' ')
                 if '30+ days ago' in stat_s:
                     job_dict['Time_posted'] = str('Too old')
                     break
@@ -299,7 +299,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
                     break
         return
     elif not info:  # Skip page if content is bad
-        print('Bad page. Moving on...')
+        print('Bad page, moving on...', end=' ')
         return None
 
 
@@ -332,7 +332,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     # Loop through all query combinations and scrape basic information (Scrape basic)
     for q_title in q_titles:
         for q_state in q_states:
-            # Scrape current page and add the data to the output list
+            # Scrape current search combination
             scrape_basic_100(chrome_driver=chrome,
                              q_title=q_title,
                              q_state=q_state,
@@ -344,6 +344,8 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     # Scrape detail & update basic_out
     for job in fnl_out:
         scrape_detail_1(chrome, job)
+        # Show progress
+        print('(#{}/{})'.format(fnl_out.index(job)+1, len(fnl_out)))
     # Scrape complete, quit chrome
     chrome.quit()
     # Print total run time
