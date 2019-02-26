@@ -1,11 +1,11 @@
 import os
 import time
-from pymongo import MongoClient
 from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime, timedelta
+from pymongo import MongoClient
 
 # Setup working directory to script's location
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -221,6 +221,13 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
 
 
 def scrape_detail_1(chrome_driver, job_dict, tries=3):
+    """
+
+    :param chrome_driver:
+    :param job_dict:
+    :param tries:
+    :return:
+    """
     # Show URL
     print('\r\nDetail page: ' + job_dict['URL'])
     # Content check
