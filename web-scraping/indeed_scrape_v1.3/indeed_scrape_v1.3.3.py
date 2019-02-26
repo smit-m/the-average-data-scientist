@@ -232,6 +232,8 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
         else:
             break
     if info:  # Enter scraping stage if content checks out
+        # Update time captured
+        job_dict['Time_captured'] = time.time()
         # Find designation
         try:
             job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
@@ -264,30 +266,17 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
             print("Cannot find job's original page link")
         # Find and calculate time posted
         for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
-            item = i.strip().lower()
-            if 'hour' in item or 'day' in item or 'minute' in item or 'now' in item:
-                stat_s = item.strip().replace('\t', '').replace('\n', '')
+            stat_s = i.strip.lower().replace('\t', '').replace('\n', '')
+            if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
+                    or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
+                    or ' month ago' in stat_s:
+                job_dict['Time_posted'] = stat_s
                 print(stat_s, end=' ')
-                if '30+ days ago' in stat_s:
-                    job_dict['Time_posted'] = str('Too old')
-                    break
-                elif ' days ago' in stat_s:
-                    m_day = int(stat_s[:-9])
-                    job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(m_day), '%Y-%m-%d'))
-                    break
-                elif '1 day ago' in stat_s:
-                    job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(1), '%Y-%m-%d'))
-                    break
-                elif ' hour' in stat_s:
-                    if int(time.strftime('%H')) - int(stat_s[:-9].strip()) > 0:
-                        job_dict['Time_posted'] = str(datetime.strftime(datetime.now(), '%Y-%m-%d'))
-                        break
-                    else:
-                        job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(1), '%Y-%m-%d'))
-                        break
-                else:
-                    job_dict['Time_posted'] = stat_s
-                    break
+                break
+        try:
+            job_dict['Time_posted']
+        except KeyError:
+            print('Cannot find job posting time', end=' ')
         return
     elif not info:  # Skip page if content is bad
         print('Bad page, moving on...', end=' ')
