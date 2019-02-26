@@ -319,22 +319,21 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                              pages_to_search=pts)
             # Show accumulative total of new jobs obtained after current scrape
             print('(Accumulative total: {})'.format(len(fnl_out)))
-    # Scrape detail & update basic_out
+    # Initiate insert counter
+    insert_counter = 0
+    # Scrape detail & upload to db
     for job in fnl_out:
         scrape_detail_1(chrome, job)
         # Show progress
         print('(#{}/{})'.format(fnl_out.index(job)+1, len(fnl_out)))
+        # Insert basic data to db
+        collection.insert_one(item)
+        insert_counter += 1
+        continue
     # Scrape complete, quit chrome
     chrome.quit()
     # Print total run time
     print('\r\nRun time: {} seconds\r\n'.format(int(time.time()-start_time)))
-    # Initiate insert counter
-    insert_counter = 0
-    # Insert basic data to db
-    for item in fnl_out:
-        collection.insert_one(item)
-        insert_counter += 1
-        continue
     return insert_counter
 
 
