@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from datetime import datetime, timedelta
 
 # Setup working directory to script's location
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -93,16 +94,15 @@ def find_next_b(driver):
     return next_b
 
 
-def scrape_basic_1(driver, db_urls, out, new_urls):
+def scrape_basic_1(driver, out, existing_urls):
     """
     This function calls close_popup(), load_page(), and find_next_b() functions, takes in an
     opened webdriver session with an indeed job listing page loaded, and go through all of the
     non-sponsored jobs on the page and capture all basic information of those jobs, including
     title, location, detail page link, and capture timestamp.
     :param driver: Opened chrome driver session
-    :param db_urls:
     :param out:
-    :param new_urls:
+    :param existing_urls:
     :return: A list containing multiple lists with each job's basic info
     """
     # Step 1: find all LEGIT jobs on current page
@@ -133,11 +133,11 @@ def scrape_basic_1(driver, db_urls, out, new_urls):
                 designation1 = None
                 page_link = None
         if designation1 and page_link:  # Add data if captured
-            if page_link in db_urls.union(new_urls):  # Check for duplicate
+            if page_link in existing_urls:  # Check for duplicate
                 continue
-            elif page_link not in db_urls.union(new_urls):
+            elif page_link not in existing_urls:
                 job_out['Designation'], job_out['URL'] = designation1, page_link
-                new_urls.add(page_link)
+                existing_urls.add(page_link)
         else:  # Skip if designation or page_link not found
             continue
         # 2.3: find company name
@@ -162,19 +162,18 @@ def scrape_basic_1(driver, db_urls, out, new_urls):
         job_out['Source'] = 'Indeed'
         # 2.7: gather all information and append to output list
         out.append(job_out)
-    return out, new_urls
+    return out, existing_urls
 
 
-def scrape_basic_100(chrome_driver, q_title, q_state, db_urls, out, new_urls, pages_to_search):
+def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_to_search):
     """
     This function calls b_scrape_current_page() function and takes in parameters to scrape
     through 100 (or less) job listing pages from the generated search url.
     :param chrome_driver: Opened chrome driver session
     :param q_title: One query job title
     :param q_state: One query state name
-    :param db_urls:
     :param out:
-    :param new_urls:
+    :param existing_urls:
     :param pages_to_search: Desired page number for the function to scrape through
     :return:
     """
@@ -196,11 +195,10 @@ def scrape_basic_100(chrome_driver, q_title, q_state, db_urls, out, new_urls, pa
             # print current page number and page url
             print('{} | {}'.format(page, current_url))
             # scrape current page
-            out, new_urls = scrape_basic_1(chrome_driver,
-                                           db_urls=db_urls,
-                                           out=out,
-                                           new_urls=new_urls)
-            # print(len(db_urls), len(new_urls))
+            out, existing_urls = scrape_basic_1(chrome_driver,
+                                                out=out,
+                                                existing_urls=existing_urls)
+            # print(len(existing_urls))
             # find and press "next" button
             if not pages_to_search == 1:
                 next_b = find_next_b(chrome_driver)
@@ -219,7 +217,84 @@ def scrape_basic_100(chrome_driver, q_title, q_state, db_urls, out, new_urls, pa
             print('Bad page, moving on...')
             break
         continue
-    return out, new_urls
+    return out, existing_urls
+
+
+def scrape_detail_1(chrome_driver, job_dict, tries=3):
+    # Show URL
+    print('\r\nDetail page: ' + job_dict['URL'])
+    # Content check
+    info = None
+    for t in range(tries):
+        chrome_driver.get(job_dict['URL'])
+        try:
+            info = chrome_driver.find_element_by_class_name('jobsearch-JobComponent')
+        except sce.NoSuchElementException:  # Bad luck, try open the link again
+            print('Bad luck x{}'.format(t+1))
+            time.sleep(1)
+        else:
+            break
+    if info:  # Enter scraping stage if content checks out
+        # Find designation
+        try:
+            job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job designation detail')
+        # Find company name
+        try:
+            job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find company name detail')
+        # Find location
+        try:
+            job_dict['Location'] = info.find_element_by_class_name('jobsearch-InlineCompanyRating')\
+                .text.split('-')[-1].replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job location detail')
+        # Find job description
+        try:
+            job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
+                .text.replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job description detail')
+        # Find original job's page link
+        try:
+            job_dict['Origin_URL'] = info.find_element_by_xpath('//*[@id="originalJobLinkContainer"]/a')\
+                .get_attribute("href")
+        except sce.NoSuchElementException:
+            print("Cannot find job's original page link")
+        # Find and calculate time posted
+        for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
+            item = i.strip().lower()
+            if 'hour' in item or 'day' in item or 'minute' in item or 'now' in item:
+                stat_s = item.strip().replace('\t', '').replace('\n', '')
+                print(stat_s)
+                if '30+ days ago' in stat_s:
+                    job_dict['Time_posted'] = str('Too old')
+                    break
+                elif ' days ago' in stat_s:
+                    m_day = int(stat_s[:-9])
+                    job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(m_day), '%Y-%m-%d'))
+                    break
+                elif '1 day ago' in stat_s:
+                    job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(1), '%Y-%m-%d'))
+                    break
+                elif ' hour' in stat_s:
+                    if int(time.strftime('%H')) - int(stat_s[:-9].strip()) > 0:
+                        job_dict['Time_posted'] = str(datetime.strftime(datetime.now(), '%Y-%m-%d'))
+                        break
+                    else:
+                        job_dict['Time_posted'] = str(datetime.strftime(datetime.now() - timedelta(1), '%Y-%m-%d'))
+                        break
+                else:
+                    job_dict['Time_posted'] = stat_s
+                    break
+        return
+    elif not info:  # Skip page if content is bad
+        print('Bad page. Moving on...')
+        return None
 
 
 def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
@@ -239,35 +314,37 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     with open(db_cred_file, 'r', encoding='utf-8') as fhand:
         collection = MongoClient(fhand.read().strip()).tads01.Test
     # Get url list from db
-    db_urls = set(
+    e_urls = set(
         i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0})
         if len(i) > 0)
-    # Initiate local variables
-    new_urls = set()
-    basic_out = list()
+    # Initiate output list
+    fnl_out = list()
     # Record start time
     start_time = time.time()
     # Open up a chrome driver session
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
-    # Loop through all query combinations and scrape
+    # Loop through all query combinations and scrape basic information (Scrape basic)
     for q_title in q_titles:
         for q_state in q_states:
             # Scrape current page and add the data to the output list
-            basic_out, new_urls = scrape_basic_100(chrome_driver=chrome,
-                                                   q_title=q_title,
-                                                   q_state=q_state,
-                                                   db_urls=db_urls,
-                                                   out=basic_out,
-                                                   new_urls=new_urls,
-                                                   pages_to_search=pts)
+            fnl_out, e_urls = scrape_basic_100(chrome_driver=chrome,
+                                               q_title=q_title,
+                                               q_state=q_state,
+                                               existing_urls=e_urls,
+                                               out=fnl_out,
+                                               pages_to_search=pts)
+            # break
+    # Scrape detail & update basic_out
+    for job in fnl_out:
+        scrape_detail_1(chrome, job)
     # Scrape complete, quit chrome
     chrome.quit()
     # Print total run time
     print('\r\nRun time: {} seconds\r\n'.format(int(time.time()-start_time)))
     # Initiate insert counter
     insert_counter = 0
-    # Insert new data to db
-    for item in basic_out:
+    # Insert basic data to db
+    for item in fnl_out:
         collection.insert_one(item)
         insert_counter += 1
         continue
