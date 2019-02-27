@@ -356,7 +356,7 @@ new_job_count = exec_scrape(c_path=chrome_path,
                             c_options=options,
                             q_titles=qt,
                             q_states=qs,
-                            db_cred_file='.dbcredential',
+                            db_cred_file='db.credential',
                             pts=101)
 
 # Show the number of documents inserted into the database
