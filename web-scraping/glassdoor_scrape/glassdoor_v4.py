@@ -91,9 +91,6 @@ time.sleep(3)
 for jobtitle in jobs:
     for s in states:
         l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
-        # driver.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
-        
-        
         
         #look for the keyword input box
         jt = driver.find_element_by_xpath("//input[@id = 'sc.keyword']")
@@ -216,3 +213,4 @@ l.close()
 driver.close()
 
 ### Filter out "Indeed Prime" from the company field
+
