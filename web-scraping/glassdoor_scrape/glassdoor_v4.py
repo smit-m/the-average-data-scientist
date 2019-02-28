@@ -56,7 +56,6 @@ chrome_path = 'chromedriver'
 states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
-
 states = states_list.read().split('\n')
 jobs = jobs_list.read().split('\n')
 
@@ -76,6 +75,7 @@ l = open('logfile.txt', 'a')
 f = open('glassdoor.txt', 'a')
 
 global_jobURLs = []
+base_scrape = []
 srno = 0
 
 # Search page load detection
