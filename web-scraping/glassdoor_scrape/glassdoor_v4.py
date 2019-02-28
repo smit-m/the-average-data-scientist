@@ -216,3 +216,8 @@ l.close()
 driver.close()
 
 ### Filter out "Indeed Prime" from the company field
+
+
+######
+# - add global list
+# - create dicts
