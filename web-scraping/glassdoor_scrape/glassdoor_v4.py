@@ -1,9 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from fake_useragent import UserAgent
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+#from selenium.webdriver.support.ui import WebDriverWait
+#from selenium.webdriver.support import expected_conditions as EC
+#from selenium.webdriver.common.by import By
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 import time
@@ -67,12 +67,12 @@ jobs_list.close()
 #l = open('logfile.txt', 'a')
 #l.write('DateTime' + '|' + 'State' + '|' + 'SearchLoad' + '|' + 'Jobs_Found' + '\n')
 #l.close()
-l = open('logfile.txt', 'a')
+#l = open('logfile.txt', 'a')
 
 #f = open('glassdoor.txt', 'a')
 #f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '|' + 'JobListingID' + '\n')
 #f.close()
-f = open('glassdoor.txt', 'a')
+#f = open('glassdoor.txt', 'a')
 
 global_jobURLs = []
 base_scrape = []
@@ -84,13 +84,16 @@ driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
 if driver:
     print('Good search page obtained')
 elif not driver:
-    print('Bad search page. Moving on')
+    print('Bad search page. Try again after some time')
 time.sleep(3)
+
 
 
 for jobtitle in jobs:
     for s in states:
-        l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
+        
+        
+        #l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
         
         #look for the keyword input box
         jt = driver.find_element_by_xpath("//input[@id = 'sc.keyword']")
@@ -105,15 +108,15 @@ for jobtitle in jobs:
         #click on the search button
         searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
         searchbutton.click()
-        l.write('Success' + '|')
+        #l.write('Success' + '|')
         time.sleep(2)
         
         try:
             jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
             jobs = int(jobs_count.text.replace(' Jobs', '').replace(',', ''))
-            l.write(str(jobs) + '\n')
+            #l.write(str(jobs) + '\n')
         except:
-            l.write('0' + '\n')
+            #l.write('0' + '\n')
             jobs = 0
             
         if jobs == 0:
@@ -135,63 +138,63 @@ for jobtitle in jobs:
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
-                srno = p*30 + counter
-                f.write(time.strftime("%Y-%m-%d") + '|' + str(srno) + '|')
-                
+                base_dict = {}
+                                
                 #Designation
                 try:
                     designation = job.find_elements_by_class_name('jobLink')
-                    f.write(designation[1].text + '|')
+                    base_dict['designation'] = designation[1].text
                 except:
-                    f.write('Not Found' + '|')
+                    base_dict['designation'] = 'Not Found'
                     
                 #Company
                 try:
                     company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
-                    f.write(company[counter-1].text + '|')
+                    base_dict['company'] = company[counter-1].text
                 except:
-                    f.write('Not Found' + '|')
+                    base_dict['company'] = 'Not Found'
                     
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
-                    f.write(loc[counter-1].text + '|')
+                    base_dict['location'] = loc[counter-1].text
                 except:
-                    f.write('Not Found' + '|')
+                    base_dict['location'] = 'Not Found'
                 
                 #Days ago
                 try:
                     days_ago = job.find_elements_by_xpath("//span[@class='minor']")
-                    f.write(days_ago[counter-1].text + '|')
+                    base_dict['days_past_posting_date'] = days_ago[counter-1].text
                 except:
-                    f.write('Not Found' + '|')
-                    
-                #New Listing
+                    base_dict['days_past_posting_date'] = 'Not Found'
+                
+                '''
+                #New Listing - not relevant at this point
                 try:
                     new_listing = job.find_elements_by_class_name('hotListing')
-                    f.write(new_listing[0].text + '|')
+                    base_dict['NewListing_flag'] = new_listing[0].text
                 except:
-                    f.write('Not Found' + '|')
-                    
+                    base_dict['NewListing_flag'] = 'Not Found'
+                '''    
                 #Salary Estimate
                 try:
                     salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
-                    f.write(salary_est[counter-1].text + '|')
+                    base_dict['salary_est'] = salary_est[counter-1].text
                 except:
-                    f.write('Not Found' + '|')
+                    base_dict['salary_est'] = 'Not Found'
                     
                 #Job URL and JobListingID
                 try:
                     url = job.find_element_by_class_name('jobLink')
-                    f.write(url.get_attribute('href') + '|')
-                    f.write(url.get_attribute('href').split('jobListingId=', 1)[1])
+                    base_dict['posting_url'] = url.get_attribute('href')
+                    base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
                     global_jobURLs.append(url.get_attribute('href'))
                 except:
-                    f.write('Not Found' + '|')
-                    f.write('Not Found')
+                    base_dict['posting_url'] = 'Not Found'
+                    base_dict['JobListingId'] = 'Not Found'
                     
-                f.write('\n')
                 counter = counter + 1
+                base_scrape.append(base_dict)
                 
             print(s + ' : Page ' + str(p+1) + ' done')
             
@@ -207,8 +210,8 @@ for jobtitle in jobs:
 
 
 global_jobURLs.clear()
-f.close()
-l.close()
+#f.close()
+#l.close()
 # Close current chrome session after each search combination finishes
 driver.close()
 
