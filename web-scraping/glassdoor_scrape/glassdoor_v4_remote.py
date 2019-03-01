@@ -127,7 +127,7 @@ for jobtitle in jobs:
         if jobs == 0:
             pages = 0
         else:
-            pages = 30
+            pages = 29
             
         
         for p in range(pages):
@@ -150,28 +150,28 @@ for jobtitle in jobs:
                     designation = job.find_elements_by_class_name('jobLink')
                     base_dict['designation'] = designation[1].text
                 except:
-                    base_dict['designation'] = 'Not Found'
+                    pass
                     
                 #Company
                 try:
                     company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
                     base_dict['company'] = company[counter-1].text
                 except:
-                    base_dict['company'] = 'Not Found'
+                    pass
                     
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
                     base_dict['location'] = loc[counter-1].text
                 except:
-                    base_dict['location'] = 'Not Found'
+                    pass
                 
                 #Days ago
                 try:
                     days_ago = job.find_elements_by_xpath("//span[@class='minor']")
                     base_dict['days_past_posting_date'] = days_ago[counter-1].text
                 except:
-                    base_dict['days_past_posting_date'] = 'Not Found'
+                    pass
                 
                 '''
                 #New Listing - not relevant at this point
@@ -179,14 +179,14 @@ for jobtitle in jobs:
                     new_listing = job.find_elements_by_class_name('hotListing')
                     base_dict['NewListing_flag'] = new_listing[0].text
                 except:
-                    base_dict['NewListing_flag'] = 'Not Found'
+                    pass
                 '''    
                 #Salary Estimate
                 try:
                     salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
                     base_dict['salary_est'] = salary_est[counter-1].text
                 except:
-                    base_dict['salary_est'] = 'Not Found'
+                    pass
                     
                 #Job URL and JobListingID
                 try:
@@ -195,8 +195,7 @@ for jobtitle in jobs:
                     base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
                     global_jobURLs.append(url.get_attribute('href'))
                 except:
-                    base_dict['posting_url'] = 'Not Found'
-                    base_dict['JobListingId'] = 'Not Found'
+                    pass
                     
                 counter = counter + 1
                 base_scrape.append(base_dict)
