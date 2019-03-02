@@ -122,19 +122,13 @@ for jobtitle in jobs:
         if jobs == 0:
             pages = 0
         else:
-            pages = 30
+            pages = 29
             
         
         for p in range(pages):
             
-            time.sleep(2)
-            #Closing the popup if it pop ups
-            XBtn = driver.find_elements_by_class_name('xBtn')
-            if len(XBtn) > 0:
-                XBtn[0].click()
-            else:
-                pass
-              
+            
+            '''  
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
@@ -168,14 +162,14 @@ for jobtitle in jobs:
                 except:
                     pass
                 
-                '''
+                ''''''
                 #New Listing - not relevant at this point
                 try:
                     new_listing = job.find_elements_by_class_name('hotListing')
                     base_dict['NewListing_flag'] = new_listing[0].text
                 except:
                     pass
-                '''    
+                '''   ''' 
                 #Salary Estimate
                 try:
                     salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
@@ -194,13 +188,20 @@ for jobtitle in jobs:
                     
                 counter = counter + 1
                 base_scrape.append(base_dict)
-                
+            '''
             print(s + ' : Page ' + str(p+1) + ' done')
             
             nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
             try:
                 #Clicking on the "Next" button if it exists
                 nextbutton[0].click()
+                time.sleep(2)
+                #Closing the popup if it pop ups
+                XBtn = driver.find_elements_by_class_name('xBtn')
+                if len(XBtn) > 0:
+                    XBtn[0].click()
+                else:
+                    pass
             except:
                 #Going through the next iteration of state as end of pages is reached
                 break
