@@ -295,7 +295,9 @@ def tp_update(db_cred_file):
         # Calculate Time_updated
         # 30+ days ago
         if '30+ days ago' in raw_tp:
-            calculated_time_posted = 'Too old'
+            calculated_time_posted = None
+            collection.update_one({'_id': entry['_id']}, {"$unset": {"Time_posted": ""}})
+            update_counter += 1
         # n day(s) ago
         elif ' days ago' in raw_tp or ' day ago' in raw_tp:
             calculated_time_posted = time.strftime("%Y-%m-%d", time.localtime(time.time() - int(raw_tp[:-8]) * 86400))
