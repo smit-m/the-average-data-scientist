@@ -412,7 +412,7 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
-chrome_path = os.getcwd() + '/usr/bin/chromedriver'
+chrome_path = os.getcwd() + '/chromedriver'
 
 # Define DB Credential File path
 dcf_path = 'db.credential'
