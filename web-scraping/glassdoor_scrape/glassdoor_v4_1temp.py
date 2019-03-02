@@ -127,7 +127,7 @@ for jobtitle in jobs:
         
         for p in range(pages):
             
-            
+            print('testing... ' + '\n')
             '''  
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
