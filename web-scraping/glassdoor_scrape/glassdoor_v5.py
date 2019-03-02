@@ -161,14 +161,14 @@ for jobtitle in jobs:
                 except:
                     pass
                 
-                ''''''
+                '''
                 #New Listing - not relevant at this point
                 try:
                     new_listing = job.find_elements_by_class_name('hotListing')
                     base_dict['NewListing_flag'] = new_listing[0].text
                 except:
                     pass
-                '''   ''' 
+                ''' 
                 #Salary Estimate
                 try:
                     salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
