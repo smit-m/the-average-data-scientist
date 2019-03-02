@@ -326,10 +326,9 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
     return
 
 
-def exec_scrape(c_path, c_options, q_titles, q_states, pts=101):
+def exec_scrape(c_options, q_titles, q_states, pts=101):
     """
 
-    :param c_path: Chrome_driver's location
     :param c_options: Chrome_driver's options
     :param q_titles: Imported job title list for querying
     :param q_states: Imported state list for querying
@@ -347,7 +346,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, pts=101):
     # Record start time
     start_time = time.time()
     # Open up a chrome driver session
-    chrome = webdriver.Chrome(c_path, chrome_options=c_options)
+    chrome = webdriver.Chrome(chrome_options=c_options)
     # Loop through all query combinations and scrape basic information (Scrape basic)
     for q_title in q_titles:
         for q_state in q_states:
@@ -412,11 +411,9 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
-chrome_path = 'chromedriver'
 
 # Execute scrape
-exec_scrape(c_path=chrome_path,
-            c_options=options,
+exec_scrape(c_options=options,
             q_titles=qt,
             q_states=qs,
             pts=101)
