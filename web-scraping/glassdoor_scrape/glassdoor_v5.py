@@ -140,33 +140,33 @@ for jobtitle in jobs:
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
-                base_dict = {}
+                base_dict = {"Source": 'Glassdoor'}
                                 
                 #Designation
                 try:
                     designation = job.find_elements_by_class_name('jobLink')
-                    base_dict['designation'] = designation[1].text
+                    base_dict['Designation'] = designation[1].text
                 except:
                     pass
                     
                 #Company
                 try:
                     company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
-                    base_dict['company'] = company[counter-1].text
+                    base_dict['Company'] = company[counter-1].text
                 except:
                     pass
                    
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
-                    base_dict['location'] = loc[counter-1].text
+                    base_dict['Location'] = loc[counter-1].text
                 except:
                     pass
                 
                 #Days ago
                 try:
                     days_ago = job.find_elements_by_xpath("//span[@class='minor']")
-                    base_dict['days_past_posting_date'] = days_ago[counter-1].text
+                    base_dict['Time_posted'] = days_ago[counter-1].text
                 except:
                     pass
                 
@@ -181,14 +181,14 @@ for jobtitle in jobs:
                 #Salary Estimate
                 try:
                     salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
-                    base_dict['salary_est'] = salary_est[counter-1].text
+                    base_dict['Salary_est'] = salary_est[counter-1].text
                 except:
                     pass
                     
                 #Job URL and JobListingID
                 try:
                     url = job.find_element_by_class_name('jobLink')
-                    base_dict['posting_url'] = url.get_attribute('href')
+                    base_dict['URL'] = url.get_attribute('href')
                     base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
                     global_jobURLs.append(url.get_attribute('href'))
                 except:
