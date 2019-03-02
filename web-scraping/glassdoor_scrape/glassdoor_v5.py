@@ -67,7 +67,8 @@ jobs_list.close()
 
 with open('db.credential', 'r', encoding='utf-8') as fhand:
     collection = MongoClient(fhand.read().strip()).tads01.Test
-    # Get url list from db
+
+# Get url list from db
 e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
 
 
