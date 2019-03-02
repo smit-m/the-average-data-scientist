@@ -53,7 +53,7 @@ options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 
-states_list = open('temp_states_list.txt', 'r')
+states_list = open('states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 states = states_list.read().split('\n')
