@@ -127,8 +127,7 @@ for jobtitle in jobs:
         
         for p in range(pages):
             
-            print('testing... ' + '\n')
-            '''  
+              
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
@@ -147,7 +146,7 @@ for jobtitle in jobs:
                     base_dict['company'] = company[counter-1].text
                 except:
                     pass
-                    
+                 '''   
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
