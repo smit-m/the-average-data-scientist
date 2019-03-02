@@ -146,7 +146,7 @@ for jobtitle in jobs:
                     base_dict['company'] = company[counter-1].text
                 except:
                     pass
-                '''   
+                   
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
@@ -184,26 +184,27 @@ for jobtitle in jobs:
                     global_jobURLs.append(url.get_attribute('href'))
                 except:
                     pass
-                '''    
+                  
                 counter = counter + 1
                 base_scrape.append(base_dict)
             
             print(s + ' : Page ' + str(p+1) + ' done')
             
-            nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
-            try:
-                #Clicking on the "Next" button if it exists
-                nextbutton[0].click()
-                time.sleep(2)
-                #Closing the popup if it pop ups
-                XBtn = driver.find_elements_by_class_name('xBtn')
-                if len(XBtn) > 0:
-                    XBtn[0].click()
-                else:
-                    pass
-            except:
-                #Going through the next iteration of state as end of pages is reached
-                break
+            if p != 29:
+                nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
+                try:
+                    #Clicking on the "Next" button if it exists
+                    nextbutton[0].click()
+                    time.sleep(2)
+                    #Closing the popup if it pop ups
+                    XBtn = driver.find_elements_by_class_name('xBtn')
+                    if len(XBtn) > 0:
+                        XBtn[0].click()
+                    else:
+                        pass
+                except:
+                    #Going through the next iteration of state as end of pages is reached
+                    break
         
         
 
@@ -212,7 +213,7 @@ global_jobURLs.clear()
 #f.close()
 #l.close()
 # Close current chrome session after each search combination finishes
-#driver.close()
+driver.close()
 
 ### Filter out "Indeed Prime" from the company field
 
@@ -220,3 +221,5 @@ global_jobURLs.clear()
 ######
 # - add global list
 # - create dicts
+
+
