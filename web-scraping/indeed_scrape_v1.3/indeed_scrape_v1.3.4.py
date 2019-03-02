@@ -286,7 +286,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
 def tp_update(db_cred_file):
     # Connect to db
     with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        collection = MongoClient(fhand.read().strip()).JL_Scraping.test01
+        collection = MongoClient(fhand.read().strip()).tads01.Test
     # Initiate update counter
     update_counter = 0
     # Calculate and update Time_posted
@@ -332,7 +332,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     """
     # Connect to database
     with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        collection = MongoClient(fhand.read().strip()).JL_Scraping.test01
+        collection = MongoClient(fhand.read().strip()).tads01.Test
     # Get url list from db
     e_urls = set(
         i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0})
@@ -374,7 +374,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                 time.sleep(2)
                 # Reconnect to db
                 with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-                    collection = MongoClient(fhand.read().strip()).JL_Scraping.test01
+                    collection = MongoClient(fhand.read().strip()).tads01.Test
                 try:  # Retry insert current job data
                     collection.insert_one(job)
                 except pme.AutoReconnect:  # Enter next loop if error occurs again
