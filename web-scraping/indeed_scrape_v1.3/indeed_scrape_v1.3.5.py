@@ -10,7 +10,8 @@ from pymongo import MongoClient
 
 def db_connect():
     with open('db.credential', 'r', encoding='utf-8') as fhand:
-        return MongoClient(fhand.read().strip()).tads01.Test
+        URI, db, col = fhand.read().strip().split('\n')
+        return MongoClient(URI)[db][col]
 
 
 def close_popup(chrome_driver):
