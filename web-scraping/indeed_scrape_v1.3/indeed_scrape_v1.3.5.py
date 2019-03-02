@@ -13,49 +13,49 @@ def db_connect():
         return MongoClient(fhand.read().strip()).tads01.Test
 
 
-def close_popup(driver):
+def close_popup(chrome_driver):
     """
     This function will detect if there's popup window on the job listing page and will close the
     window if it exist.
-    :param driver: An opened chrome driver session
+    :param chrome_driver: An opened chrome driver session
     :return:
     """
     try:
-        pop_window = driver.find_element_by_css_selector(
+        pop_window = chrome_driver.find_element_by_css_selector(
             ".popover.popover-foreground.jobalert-popover")
-        x_icon = driver.find_element_by_class_name("popover-x")
+        x_icon = chrome_driver.find_element_by_class_name("popover-x")
     except sce.NoSuchElementException:
         pop_window, x_icon = None, None
     if pop_window:
         try:
-            ActionChains(driver).move_to_element(pop_window).click(x_icon).perform()
+            ActionChains(chrome_driver).move_to_element(pop_window).click(x_icon).perform()
         except sce.ElementNotVisibleException:
             print('-------- ! --------')
     return
 
 
-def load_page(driver, c_url, tries=4):
+def load_page(chrome_driver, current_url, tries=4):
     """
     This function is used to ensure the current job listing page is correctly loaded so that
     the scraping can be successfully executed later on.
-    :param driver: An opened chrome driver session
-    :param c_url: Current url for the page that's opened
+    :param chrome_driver: An opened chrome driver session
+    :param current_url: Current url for the page that's opened
     :param tries: Number of times should the script tries to reload the page when page error detected
     :return: A web element from the loaded page used as a page load response
     """
-    close_popup(driver=driver)
+    close_popup(chrome_driver)
     try:
         # Detect the opened page is loaded correctly or not
-        page_response = driver.find_element_by_id('searchCount').text
+        page_response = chrome_driver.find_element_by_id('searchCount').text
     except sce.NoSuchElementException:
         page_response = None
         print('Bad page, try again')
         # Try to load the page another t times
         for t in range(1, tries+1):
-            driver.get(c_url)
-            close_popup(driver=driver)
+            chrome_driver.get(current_url)
+            close_popup(chrome_driver)
             try:
-                page_response = driver.find_element_by_id('searchCount').text
+                page_response = chrome_driver.find_element_by_id('searchCount').text
                 break
             except sce.NoSuchElementException:
                 page_response = None
@@ -66,14 +66,14 @@ def load_page(driver, c_url, tries=4):
     return page_response
 
 
-def find_next_b(driver):
+def find_next_b(chrome_driver):
     """
     This function takes in an opened webdriver session and tries to find the 'next' button on
     the job listing page. It will then click on the button if it exists on the page.
-    :param driver: Opened chrome driver session
+    :param chrome_driver: Opened chrome driver session
     :return: The 'next' button web element (or None if not exist)
     """
-    next_b = driver.find_elements_by_class_name("np")
+    next_b = chrome_driver.find_elements_by_class_name("np")
     if len(next_b) == 2:
         next_b = next_b[1]
     elif len(next_b) == 0:
@@ -127,93 +127,20 @@ def tp_update():
     return update_counter
 
 
-def scrape_detail_1(chrome_driver, job_dict, tries=3):
-    """
-
-    :param chrome_driver:
-    :param job_dict:
-    :param tries:
-    :return:
-    """
-    # Show URL
-    print('\r\nDetail page: ' + job_dict['URL'])
-    # Content check
-    info = None
-    for t in range(tries):
-        chrome_driver.get(job_dict['URL'])
-        try:
-            info = chrome_driver.find_element_by_class_name('jobsearch-JobComponent')
-        except sce.NoSuchElementException:  # Bad luck, try open the link again
-            print('Bad luck x{}'.format(t+1))
-            time.sleep(1)
-        else:
-            break
-    if info:  # Enter scraping stage if content checks out
-        # Update time captured
-        job_dict['Time_captured'] = time.time()
-        # Find designation
-        try:
-            job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
-                .text.replace('\t', '').replace('\n', '').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job designation detail')
-        # Find company name
-        try:
-            job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
-                .text.replace('\t', '').replace('\n', '').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find company name detail')
-        # Find location
-        try:
-            job_dict['Location'] = info.find_element_by_class_name('jobsearch-InlineCompanyRating')\
-                .text.split('-')[-1].replace('\t', ' ').replace('\n', ' ').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job location detail')
-        # Find job description
-        try:
-            job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
-                .text.replace('\t', ' ').replace('\n', ' ').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job description detail')
-        # Find original job's page link
-        try:
-            job_dict['Origin_URL'] = info.find_element_by_xpath('//*[@id="originalJobLinkContainer"]/a')\
-                .get_attribute("href")
-        except sce.NoSuchElementException:
-            print("Cannot find job's original page link")
-        # Find and calculate time posted
-        for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
-            stat_s = i.strip().lower().replace('\t', '').replace('\n', '')
-            if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
-                    or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
-                    or ' month ago' in stat_s:
-                job_dict['Time_posted'] = stat_s
-                print(stat_s, end=' ')
-                break
-        try:
-            job_dict['Time_posted']
-        except KeyError:
-            print('Cannot find job posting time', end=' ')
-        return
-    elif not info:  # Skip page if content is bad
-        print('Bad page, moving on...', end=' ')
-        return None
-
-
-def scrape_basic_1(driver, out, existing_urls):
+def scrape_basic_1(chrome_driver, out, existing_urls):
     """
     This function calls close_popup(), load_page(), and find_next_b() functions, takes in an
     opened webdriver session with an indeed job listing page loaded, and go through all of the
     non-sponsored jobs on the page and capture all basic information of those jobs, including
     title, location, detail page link, and capture timestamp.
-    :param driver: Opened chrome driver session
+    :param chrome_driver: Opened chrome driver session
     :param out:
     :param existing_urls:
     :return: A list containing multiple lists with each job's basic info
     """
     # Step 1: find all LEGIT jobs on current page
     jobs = []
-    for x in driver.find_elements_by_css_selector(".row.result.clickcard"):
+    for x in chrome_driver.find_elements_by_css_selector(".row.result.clickcard"):
         try:
             x.find_element_by_class_name(" sponsoredGray ")
         except sce.NoSuchElementException:
@@ -295,7 +222,7 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
         # Get current page's url
         current_url = chrome_driver.current_url
         # Get page load response or try to reload
-        page = load_page(chrome_driver, current_url, tries=9)
+        page = load_page(chrome_driver, current_url=current_url, tries=9)
         # Scrape or break
         if page:  # if successfully loaded
             # print current page number and page url
@@ -326,16 +253,92 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
     return
 
 
-def exec_scrape(c_path, c_options, q_titles, q_states, pts=101):
+def scrape_detail_1(chrome_driver, job_dict, tries=3):
     """
 
-    :param c_path: Chrome_driver's location
-    :param c_options: Chrome_driver's options
+    :param chrome_driver:
+    :param job_dict:
+    :param tries:
+    :return:
+    """
+    # Show URL
+    print('\r\nDetail page: ' + job_dict['URL'])
+    # Content check
+    info = None
+    for t in range(tries):
+        chrome_driver.get(job_dict['URL'])
+        try:
+            info = chrome_driver.find_element_by_class_name('jobsearch-JobComponent')
+        except sce.NoSuchElementException:  # Bad luck, try open the link again
+            print('Bad luck x{}'.format(t+1))
+            time.sleep(1)
+        else:
+            break
+    if info:  # Enter scraping stage if content checks out
+        # Update time captured
+        job_dict['Time_captured'] = time.time()
+        # Find designation
+        try:
+            job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job designation detail')
+        # Find company name
+        try:
+            job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find company name detail')
+        # Find location
+        try:
+            job_dict['Location'] = info.find_element_by_class_name('jobsearch-InlineCompanyRating')\
+                .text.split('-')[-1].replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job location detail')
+        # Find job description
+        try:
+            job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
+                .text.replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job description detail')
+        # Find original job's page link
+        try:
+            job_dict['Origin_URL'] = info.find_element_by_xpath('//*[@id="originalJobLinkContainer"]/a')\
+                .get_attribute("href")
+        except sce.NoSuchElementException:
+            print("Cannot find job's original page link")
+        # Find and calculate time posted
+        for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
+            stat_s = i.strip().lower().replace('\t', '').replace('\n', '')
+            if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
+                    or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
+                    or ' month ago' in stat_s:
+                job_dict['Time_posted'] = stat_s
+                print(stat_s, end=' ')
+                break
+        try:
+            job_dict['Time_posted']
+        except KeyError:
+            print('Cannot find job posting time', end=' ')
+        return
+    elif not info:  # Skip page if content is bad
+        print('Bad page, moving on...', end=' ')
+        return None
+
+
+def exec_scrape(q_titles, q_states, pts=101):
+    """
+
     :param q_titles: Imported job title list for querying
     :param q_states: Imported state list for querying
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
+    # Configure ChromeDriver (headless)
+    c_options = Options()
+    c_options.add_argument('--headless')
+    c_options.add_argument('--disable-gpu')
+    c_path = '{}/chromedriver'.format(os.getcwd())
     # Connect to database
     collection = db_connect()
     # Get url list from db
@@ -406,17 +409,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
     qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
-    qs = fh.read().strip().split('\n')
-
-# Configure ChromeDriver (headless)
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')
-chrome_path = '{}/chromedriver'.format(os.getcwd())
+    qs = list(i for i in fh.read().strip().split('\n') if not i.startswith('#'))
 
 # Execute scrape
-exec_scrape(c_path=chrome_path,
-            c_options=options,
-            q_titles=qt,
-            q_states=qs,
-            pts=101)
+exec_scrape(q_titles=qt, q_states=qs, pts=101)
