@@ -194,6 +194,7 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
                 next_b = find_next_b(chrome_driver)
                 if next_b:
                     try:
+                        chrome_driver.execute_script("window.scrollTo(0, 100000)")
                         next_b.click()
                     except sce.WebDriverException:
                         print('\r\nNEXT BUTTON NOT CLICKABLE, MOVING ON...\r\n')
@@ -358,6 +359,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
             # Show accumulative total of new jobs obtained after current scrape
             print('(Accumulative total: {})'.format(len(fnl_out)))
             # break
+        # break
     # Initiate insert counter
     insert_counter = 0
     # Scrape detail information & upload each entry to db
@@ -411,7 +413,7 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
-chrome_path = '/usr/bin/chromedriver'
+chrome_path = os.getcwd() + '/usr/bin/chromedriver'
 
 # Execute scrape
 exec_scrape(c_path=chrome_path,
