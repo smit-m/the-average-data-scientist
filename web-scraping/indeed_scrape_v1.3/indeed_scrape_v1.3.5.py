@@ -412,7 +412,7 @@ with open('q_states.txt', 'r', encoding='utf-8') as fh:
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
-chrome_path = 'chromedriver'
+chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 # Execute scrape
 exec_scrape(c_path=chrome_path,
