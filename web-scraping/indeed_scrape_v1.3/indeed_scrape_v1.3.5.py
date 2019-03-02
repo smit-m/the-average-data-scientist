@@ -280,13 +280,13 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
         # Find designation
         try:
             job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
-                .text.replace('\t', '').replace('\n', '').strip()
+                .text.replace('\t', ' ').replace('\n', ' ').strip()
         except sce.NoSuchElementException:
             print('Cannot find job designation detail')
         # Find company name
         try:
             job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
-                .text.replace('\t', '').replace('\n', '').strip()
+                .text.replace('\t', ' ').replace('\n', ' ').strip()
         except sce.NoSuchElementException:
             print('Cannot find company name detail')
         # Find location
@@ -298,7 +298,7 @@ def scrape_detail_1(chrome_driver, job_dict, tries=3):
         # Find job description
         try:
             job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
-                .text.replace('\t', ' ').replace('\n', ' ').strip()
+                .text.strip()
         except sce.NoSuchElementException:
             print('Cannot find job description detail')
         # Find original job's page link
