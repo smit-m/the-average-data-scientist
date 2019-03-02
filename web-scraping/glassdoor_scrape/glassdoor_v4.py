@@ -122,7 +122,7 @@ for jobtitle in jobs:
         if jobs == 0:
             pages = 0
         else:
-            pages = 29
+            pages = 30
             
         
         for p in range(pages):
