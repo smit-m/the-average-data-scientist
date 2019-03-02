@@ -122,7 +122,7 @@ for jobtitle in jobs:
         if jobs == 0:
             pages = 0
         else:
-            pages = 29
+            pages = 30
             
         
         for p in range(pages):
@@ -146,7 +146,7 @@ for jobtitle in jobs:
                     base_dict['company'] = company[counter-1].text
                 except:
                     pass
-                 '''   
+                '''   
                 #Location
                 try:
                     loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
@@ -184,10 +184,10 @@ for jobtitle in jobs:
                     global_jobURLs.append(url.get_attribute('href'))
                 except:
                     pass
-                    
+                '''    
                 counter = counter + 1
                 base_scrape.append(base_dict)
-            '''
+            
             print(s + ' : Page ' + str(p+1) + ' done')
             
             nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
@@ -212,7 +212,7 @@ global_jobURLs.clear()
 #f.close()
 #l.close()
 # Close current chrome session after each search combination finishes
-driver.close()
+#driver.close()
 
 ### Filter out "Indeed Prime" from the company field
 
