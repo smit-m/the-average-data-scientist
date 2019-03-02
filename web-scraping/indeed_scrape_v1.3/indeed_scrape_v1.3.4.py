@@ -8,6 +8,11 @@ from pymongo import errors as pme
 from pymongo import MongoClient
 
 
+def db_connect(db_cred_file):
+    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
+        return MongoClient(fhand.read().strip()).tads01.Test
+
+
 def close_popup(driver):
     """
     This function will detect if there's popup window on the job listing page and will close the
@@ -83,6 +88,116 @@ def find_next_b(driver):
         next_b = None
         print('No more page, moving on...(2)')
     return next_b
+
+
+def tp_update():
+    # Connect to db
+    collection = db_connect(dcf_path)
+    # Initiate update counter
+    update_counter = 0
+    # Calculate and update Time_posted
+    for entry in tuple(i for i in collection.find({}, {"Time_captured": 1, "Time_posted": 1, "_id": 1}) if len(i) == 3):
+        raw_tp = entry['Time_posted'].strip().lower()
+        # Calculate Time_updated
+        # 30+ days ago
+        if '30+ days ago' in raw_tp:
+            calculated_time_posted = None
+            collection.update_one({'_id': entry['_id']}, {"$unset": {"Time_posted": ""}})
+            update_counter += 1
+        # n day(s) ago
+        elif ' days ago' in raw_tp or ' day ago' in raw_tp:
+            calculated_time_posted = time.strftime("%Y-%m-%d", time.localtime(time.time() - int(raw_tp[:-8]) * 86400))
+        # n hour(s) ago
+        elif ' hours ago' in raw_tp or ' hour ago' in raw_tp:
+            calculated_time_posted = time.strftime("%Y-%m-%d", time.localtime(time.time() - int(raw_tp[:-9]) * 3600))
+        # n months ago
+        elif ' months ago' in raw_tp:
+            calculated_time_posted = time.strftime("%Y-%m-%d",
+                                                   time.localtime(time.time() - int(raw_tp[:-10]) * 2592000))
+        # other cases (already updated or other unexpected values)
+        else:
+            calculated_time_posted = None
+        # print(calculated_time_posted)
+        # Update db entry
+        if calculated_time_posted:
+            collection.update_one({'_id': entry['_id']}, {"$set": {"Time_posted": calculated_time_posted}},
+                                  upsert=False)
+            update_counter += 1
+        continue
+    return update_counter
+
+
+def scrape_detail_1(chrome_driver, job_dict, tries=3):
+    """
+
+    :param chrome_driver:
+    :param job_dict:
+    :param tries:
+    :return:
+    """
+    # Show URL
+    print('\r\nDetail page: ' + job_dict['URL'])
+    # Content check
+    info = None
+    for t in range(tries):
+        chrome_driver.get(job_dict['URL'])
+        try:
+            info = chrome_driver.find_element_by_class_name('jobsearch-JobComponent')
+        except sce.NoSuchElementException:  # Bad luck, try open the link again
+            print('Bad luck x{}'.format(t+1))
+            time.sleep(1)
+        else:
+            break
+    if info:  # Enter scraping stage if content checks out
+        # Update time captured
+        job_dict['Time_captured'] = time.time()
+        # Find designation
+        try:
+            job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job designation detail')
+        # Find company name
+        try:
+            job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
+                .text.replace('\t', '').replace('\n', '').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find company name detail')
+        # Find location
+        try:
+            job_dict['Location'] = info.find_element_by_class_name('jobsearch-InlineCompanyRating')\
+                .text.split('-')[-1].replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job location detail')
+        # Find job description
+        try:
+            job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
+                .text.replace('\t', ' ').replace('\n', ' ').strip()
+        except sce.NoSuchElementException:
+            print('Cannot find job description detail')
+        # Find original job's page link
+        try:
+            job_dict['Origin_URL'] = info.find_element_by_xpath('//*[@id="originalJobLinkContainer"]/a')\
+                .get_attribute("href")
+        except sce.NoSuchElementException:
+            print("Cannot find job's original page link")
+        # Find and calculate time posted
+        for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
+            stat_s = i.strip().lower().replace('\t', '').replace('\n', '')
+            if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
+                    or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
+                    or ' month ago' in stat_s:
+                job_dict['Time_posted'] = stat_s
+                print(stat_s, end=' ')
+                break
+        try:
+            job_dict['Time_posted']
+        except KeyError:
+            print('Cannot find job posting time', end=' ')
+        return
+    elif not info:  # Skip page if content is bad
+        print('Bad page, moving on...', end=' ')
+        return None
 
 
 def scrape_basic_1(driver, out, existing_urls):
@@ -211,131 +326,18 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
     return
 
 
-def scrape_detail_1(chrome_driver, job_dict, tries=3):
-    """
-
-    :param chrome_driver:
-    :param job_dict:
-    :param tries:
-    :return:
-    """
-    # Show URL
-    print('\r\nDetail page: ' + job_dict['URL'])
-    # Content check
-    info = None
-    for t in range(tries):
-        chrome_driver.get(job_dict['URL'])
-        try:
-            info = chrome_driver.find_element_by_class_name('jobsearch-JobComponent')
-        except sce.NoSuchElementException:  # Bad luck, try open the link again
-            print('Bad luck x{}'.format(t+1))
-            time.sleep(1)
-        else:
-            break
-    if info:  # Enter scraping stage if content checks out
-        # Update time captured
-        job_dict['Time_captured'] = time.time()
-        # Find designation
-        try:
-            job_dict['Designation'] = info.find_element_by_class_name('jobsearch-JobInfoHeader-title')\
-                .text.replace('\t', '').replace('\n', '').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job designation detail')
-        # Find company name
-        try:
-            job_dict['Company'] = info.find_element_by_css_selector('.icl-u-lg-mr--sm.icl-u-xs-mr--xs')\
-                .text.replace('\t', '').replace('\n', '').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find company name detail')
-        # Find location
-        try:
-            job_dict['Location'] = info.find_element_by_class_name('jobsearch-InlineCompanyRating')\
-                .text.split('-')[-1].replace('\t', ' ').replace('\n', ' ').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job location detail')
-        # Find job description
-        try:
-            job_dict['Description'] = info.find_element_by_class_name('jobsearch-JobComponent-description')\
-                .text.replace('\t', ' ').replace('\n', ' ').strip()
-        except sce.NoSuchElementException:
-            print('Cannot find job description detail')
-        # Find original job's page link
-        try:
-            job_dict['Origin_URL'] = info.find_element_by_xpath('//*[@id="originalJobLinkContainer"]/a')\
-                .get_attribute("href")
-        except sce.NoSuchElementException:
-            print("Cannot find job's original page link")
-        # Find and calculate time posted
-        for i in info.find_element_by_class_name('jobsearch-JobMetadataFooter').text.split('-'):
-            stat_s = i.strip().lower().replace('\t', '').replace('\n', '')
-            if '30+ days ago' in stat_s or ' days ago' in stat_s or '1 day ago' in stat_s \
-                    or ' hours ago' in stat_s or '1 hour ago' in stat_s or ' months ago' in stat_s \
-                    or ' month ago' in stat_s:
-                job_dict['Time_posted'] = stat_s
-                print(stat_s, end=' ')
-                break
-        try:
-            job_dict['Time_posted']
-        except KeyError:
-            print('Cannot find job posting time', end=' ')
-        return
-    elif not info:  # Skip page if content is bad
-        print('Bad page, moving on...', end=' ')
-        return None
-
-
-def tp_update(db_cred_file):
-    # Connect to db
-    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        collection = MongoClient(fhand.read().strip()).tads01.Test
-    # Initiate update counter
-    update_counter = 0
-    # Calculate and update Time_posted
-    for entry in tuple(i for i in collection.find({}, {"Time_captured": 1, "Time_posted": 1, "_id": 1}) if len(i) == 3):
-        raw_tp = entry['Time_posted'].strip().lower()
-        # Calculate Time_updated
-        # 30+ days ago
-        if '30+ days ago' in raw_tp:
-            calculated_time_posted = None
-            collection.update_one({'_id': entry['_id']}, {"$unset": {"Time_posted": ""}})
-            update_counter += 1
-        # n day(s) ago
-        elif ' days ago' in raw_tp or ' day ago' in raw_tp:
-            calculated_time_posted = time.strftime("%Y-%m-%d", time.localtime(time.time() - int(raw_tp[:-8]) * 86400))
-        # n hour(s) ago
-        elif ' hours ago' in raw_tp or ' hour ago' in raw_tp:
-            calculated_time_posted = time.strftime("%Y-%m-%d", time.localtime(time.time() - int(raw_tp[:-9]) * 3600))
-        # n months ago
-        elif ' months ago' in raw_tp:
-            calculated_time_posted = time.strftime("%Y-%m-%d",
-                                                   time.localtime(time.time() - int(raw_tp[:-10]) * 2592000))
-        # other cases (already updated or other unexpected values)
-        else:
-            calculated_time_posted = None
-        # print(calculated_time_posted)
-        # Update db entry
-        if calculated_time_posted:
-            collection.update_one({'_id': entry['_id']}, {"$set": {"Time_posted": calculated_time_posted}},
-                                  upsert=False)
-            update_counter += 1
-        continue
-    return update_counter
-
-
-def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
+def exec_scrape(c_path, c_options, q_titles, q_states, pts=101):
     """
 
     :param c_path: Chrome_driver's location
     :param c_options: Chrome_driver's options
     :param q_titles: Imported job title list for querying
-    :param db_cred_file:
     :param q_states: Imported state list for querying
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
     # Connect to database
-    with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-        collection = MongoClient(fhand.read().strip()).tads01.Test
+    collection = db_connect(dcf_path)
     # Get url list from db
     e_urls = set(
         i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0})
@@ -377,8 +379,7 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
                 # Back off 2 seconds
                 time.sleep(2)
                 # Reconnect to db
-                with open(db_cred_file, 'r', encoding='utf-8') as fhand:
-                    collection = MongoClient(fhand.read().strip()).tads01.Test
+                collection = db_connect(dcf_path)
                 try:  # Retry insert current job data
                     collection.insert_one(job)
                 except pme.AutoReconnect:  # Enter next loop if error occurs again
@@ -393,10 +394,8 @@ def exec_scrape(c_path, c_options, q_titles, q_states, db_cred_file, pts=101):
     print('\r\nRun time: {} seconds\r\n'.format(int(time.time()-start_time)))
     # Show the number of documents inserted into the database
     print('{} new job(s) inserted.\r\n'.format(insert_counter))
-    # Calculate & update Time_posted
-    tp_update_counter = tp_update(db_cred_file)
-    # Show the number of Time_posted updated to the database
-    print('{} Tp field(s) updated.\r\n'.format(tp_update_counter))
+    # Calculate & update Time_posted and show update counter
+    print('{} Tp field(s) updated.\r\n'.format(tp_update()))
     return
 
 
@@ -415,10 +414,12 @@ options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 chrome_path = os.getcwd() + '/usr/bin/chromedriver'
 
+# Define DB Credential File path
+dcf_path = 'db.credential'
+
 # Execute scrape
 exec_scrape(c_path=chrome_path,
             c_options=options,
             q_titles=qt,
             q_states=qs,
-            db_cred_file='db.credential',
             pts=101)
