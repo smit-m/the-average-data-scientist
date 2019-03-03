@@ -219,7 +219,7 @@ for jobtitle in jobs:
 
 
 global_jobURLs.clear()
-#f.close()
+
 #l.close()
 # Close current chrome session after each search combination finishes
 driver.close()
