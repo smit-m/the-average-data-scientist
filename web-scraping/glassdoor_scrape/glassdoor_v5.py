@@ -125,14 +125,15 @@ for jobtitle in jobs:
                                 
                 # Capture the URL of the job posting
                 try:
-                    url_element = job.find_element_by_class_name('jobLink')
-                    url = url_element.get_attribute('href')
+                    url = job.find_element_by_class_name('jobLink').get_attribute('href')
+                    # url_element = job.find_element_by_class_name('jobLink')
+                    # url = url_elementc
                 except:
                     continue
                 
                 # Check if the job posting already exists in the DB or previous run
-                # if not url in global_urls and not url in new_urls:
                 if url not in global_urls + new_urls:
+                # if not url in global_urls and not url in new_urls:
                     
                     # add URL and JobListingID to the DB
                     base_dict['URL'] = url
@@ -140,34 +141,38 @@ for jobtitle in jobs:
                 
                     # Designation
                     try:
-                        designation = job.find_elements_by_class_name('jobLink')
-                        base_dict['Designation'] = designation[1].text
+                        base_dict['Designation'] =job.find_elements_by_class_name('jobLink')[1].text
+                        # designation = job.find_elements_by_class_name('jobLink')
+                        # base_dict['Designation'] = designation[1].text
                     except:
                         pass
                         
                     # Company
                     try:
-                        company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
-                        base_dict['Company'] = company[counter-1].text
+                        base_dict['Company'] = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")[counter - 1].text
+                        # company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
+                        # base_dict['Company'] = company[counter-1].text
                     except:
                         pass
                        
                     # Location
                     try:
-                        loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
-                        base_dict['Location'] = loc[counter-1].text
+                        base_dict['Location'] = job.find_elements_by_xpath("//div/span[@class='subtle loc']")[counter - 1].text
+                        # loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
+                        # base_dict['Location'] = loc[counter-1].text
                     except:
                         pass
                     
                     # Days ago
                     try:
-                        days_ago = job.find_elements_by_xpath("//span[@class='minor']")
-                        base_dict['Time_posted'] = days_ago[counter-1].text
+                        base_dict['Time_posted'] = job.find_elements_by_xpath("//span[@class='minor']")[counter - 1].text
+                        # days_ago = job.find_elements_by_xpath("//span[@class='minor']")
+                        # base_dict['Time_posted'] = days_ago[counter-1].text
                     except:
                         pass
                     
                     '''
-                    #New Listing - not relevant at this point
+                    # New Listing - not relevant at this point
                     try:
                         new_listing = job.find_elements_by_class_name('hotListing')
                         base_dict['NewListing_flag'] = new_listing[0].text
@@ -176,13 +181,14 @@ for jobtitle in jobs:
                     ''' 
                     # Salary Estimate
                     try:
-                        salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
-                        base_dict['Salary_est'] = salary_est[counter-1].text
+                        base_dict['Salary_est'] = job.find_elements_by_xpath('//span[@class="green small"]')[counter - 1].text
+                        # salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
+                        # base_dict['Salary_est'] = salary_est[counter-1].text
                     except:
                         pass
                         
                     
-                    base_dict['Source'] = "Glassdoor"
+                    # base_dict['Source'] = "Glassdoor"
                     base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
                     counter = counter + 1
                     base_scrape.append(base_dict)
