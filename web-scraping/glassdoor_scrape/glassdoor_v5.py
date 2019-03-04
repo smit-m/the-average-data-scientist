@@ -8,6 +8,10 @@ from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 import time
 from pymongo import MongoClient
+import os
+
+# Setup working directory to script's location
+# os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 
 
 def start_search_session(c_path, c_options, tries=20):
@@ -23,7 +27,7 @@ def start_search_session(c_path, c_options, tries=20):
     """
     for i in range(1, tries+1):
         # Create Chrome webdriver session
-        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options)
+        chrome_session = webdriver.Chrome(c_path, options=c_options)
         # Get search page
         chrome_session.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
         try:  # Detect bad page
@@ -55,6 +59,7 @@ options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
+# chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 with open('temp_states_list.txt', 'r') as states_list, \
         open('job_titles.txt', 'r') as jobs_list:
