@@ -208,7 +208,7 @@ for jobtitle in jobs:
 # global_urls.append(new_urls)
 
 # Close current chrome session after each search combination finishes
-driver.close()
+driver.quit()
 
 ### Filter out "Indeed Prime" from the company field
 
