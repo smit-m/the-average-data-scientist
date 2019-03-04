@@ -10,7 +10,7 @@ import time
 from pymongo import MongoClient
 
 
-def start_search_session(c_path, c_options, dcap, sargs, tries=20):
+def start_search_session(c_path, c_options, tries=20):
     """
     This function tries to open the glassdoor search window. If it detects login page, it will
     then close the chrome session and opens another one to try the luck. After a number of
@@ -18,16 +18,12 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=20):
     deciding factor for later operations.
     :param c_path: Path to chromedriver
     :param c_options: Chrome options variable
-    :param dcap: Chrome driver's desired_capabilities
-    :param sargs: Chrome driver's service arguments
     :param tries: How many times should the function try to obtain the search page
     :return: A correctly opened search window or NoneType
     """
     for i in range(1, tries+1):
         # Create Chrome webdriver session
-        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
-                                          desired_capabilities=dcap,
-                                          service_args=sargs)
+        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options)
         # Get search page
         chrome_session.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
         try:  # Detect bad page
@@ -44,34 +40,43 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=20):
     return None
 
 
+def db_connect():
+    with open('db.credential', 'r', encoding='utf-8') as fhand:
+        uri, db, col = fhand.read().strip().split('\n')
+        return MongoClient(uri)[db][col]
+
+
 # Configure Chrome driver
-ua = UserAgent()
-dcap = dict(DesiredCapabilities.PHANTOMJS)
-dcap["phantomjs.page.settings.userAgent"] = ua.random
-service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
+# ua = UserAgent()
+# dcap = dict(DesiredCapabilities.PHANTOMJS)
+# dcap["phantomjs.page.settings.userAgent"] = ua.random
+# service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 
-states_list = open('temp_states_list.txt', 'r')
-jobs_list = open('job_titles.txt', 'r')
-
-states = states_list.read().split('\n')
-jobs = jobs_list.read().split('\n')
-
-states_list.close()
-jobs_list.close()
+with open('temp_states_list.txt', 'r') as states_list, \
+        open('job_titles.txt', 'r') as jobs_list:
+    states = states_list.read().split('\n')
+    jobs = jobs_list.read().split('\n')
 
 
-'''
-with open('db.credential', 'r', encoding='utf-8') as fhand:
-    collection = MongoClient(fhand.read().strip()).tads01.Test
+# states_list = open('temp_states_list.txt', 'r')
+# jobs_list = open('job_titles.txt', 'r')
+#
+# states = states_list.read().split('\n')
+# jobs = jobs_list.read().split('\n')
+#
+# states_list.close()
+# jobs_list.close()
+
+
 
 # Get url list from db
-global_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-'''
+# global_urls = set(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
 global_urls = []
+
 new_urls = []
 
 
@@ -86,8 +91,7 @@ base_scrape = []
 srno = 0
 
 # Search page load detection
-driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
-                              sargs=service_args)
+driver = start_search_session(c_path=chrome_path, c_options=options)
 if driver:
     print('Good search page obtained')
 elif not driver:
