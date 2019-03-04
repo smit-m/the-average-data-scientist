@@ -355,7 +355,7 @@ def exec_scrape(q_titles, q_states, pts=101):
     # Record start time
     start_time = time.time()
     # Open up a chrome driver session
-    chrome = webdriver.Chrome(c_path, chrome_options=c_options)
+    chrome = webdriver.Chrome(c_path, options=c_options)
     # Loop through all query combinations and scrape basic information (Scrape basic)
     for q_state in q_states:
         for q_title in q_titles:
