@@ -54,7 +54,7 @@ options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 
-states_list = open('states_list.txt', 'r')
+states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 states = states_list.read().split('\n')
@@ -64,13 +64,15 @@ states_list.close()
 jobs_list.close()
 
 
-
+'''
 with open('db.credential', 'r', encoding='utf-8') as fhand:
     collection = MongoClient(fhand.read().strip()).tads01.Test
 
 # Get url list from db
-e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-
+global_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+'''
+global_urls = []
+new_urls = []
 
 
 #l = open('logfile.txt', 'a')
@@ -78,12 +80,8 @@ e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(
 #l.close()
 #l = open('logfile.txt', 'a')
 
-#f = open('glassdoor.txt', 'a')
-#f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '|' + 'JobListingID' + '\n')
-#f.close()
-#f = open('glassdoor.txt', 'a')
 
-global_jobURLs = []
+
 base_scrape = []
 srno = 0
 
@@ -142,62 +140,73 @@ for jobtitle in jobs:
             for job in jl:
                 base_dict = {"Source": 'Glassdoor'}
                                 
-                #Designation
-                try:
-                    designation = job.find_elements_by_class_name('jobLink')
-                    base_dict['Designation'] = designation[1].text
-                except:
-                    pass
-                    
-                #Company
-                try:
-                    company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
-                    base_dict['Company'] = company[counter-1].text
-                except:
-                    pass
-                   
-                #Location
-                try:
-                    loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
-                    base_dict['Location'] = loc[counter-1].text
-                except:
-                    pass
-                
-                #Days ago
-                try:
-                    days_ago = job.find_elements_by_xpath("//span[@class='minor']")
-                    base_dict['Time_posted'] = days_ago[counter-1].text
-                except:
-                    pass
-                
-                '''
-                #New Listing - not relevant at this point
-                try:
-                    new_listing = job.find_elements_by_class_name('hotListing')
-                    base_dict['NewListing_flag'] = new_listing[0].text
-                except:
-                    pass
-                ''' 
-                #Salary Estimate
-                try:
-                    salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
-                    base_dict['Salary_est'] = salary_est[counter-1].text
-                except:
-                    pass
-                    
                 #Job URL and JobListingID
                 try:
-                    url = job.find_element_by_class_name('jobLink')
-                    base_dict['URL'] = url.get_attribute('href')
-                    base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
-                    global_jobURLs.append(url.get_attribute('href'))
+                    url_element = job.find_element_by_class_name('jobLink')
+                    url = url_element.get_attribute('href')
                 except:
-                    pass
+                    continue
                 
-                base_dict['Source'] = "Glassdoor"
-                base_dict['Time_Captured'] = time.time()
-                counter = counter + 1
-                base_scrape.append(base_dict)
+                #Check if the job posting already exists in the DB or previous run 
+                if not url in global_urls and not url in new_urls:
+                    
+                    #add URL and JobListingID to the DB
+                    base_dict['URL'] = url
+                    base_dict['JobListingId'] = url.split('jobListingId=', 1)[1]
+                
+                    #Designation
+                    try:
+                        designation = job.find_elements_by_class_name('jobLink')
+                        base_dict['Designation'] = designation[1].text
+                    except:
+                        pass
+                        
+                    #Company
+                    try:
+                        company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
+                        base_dict['Company'] = company[counter-1].text
+                    except:
+                        pass
+                       
+                    #Location
+                    try:
+                        loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
+                        base_dict['Location'] = loc[counter-1].text
+                    except:
+                        pass
+                    
+                    #Days ago
+                    try:
+                        days_ago = job.find_elements_by_xpath("//span[@class='minor']")
+                        base_dict['Time_posted'] = days_ago[counter-1].text
+                    except:
+                        pass
+                    
+                    '''
+                    #New Listing - not relevant at this point
+                    try:
+                        new_listing = job.find_elements_by_class_name('hotListing')
+                        base_dict['NewListing_flag'] = new_listing[0].text
+                    except:
+                        pass
+                    ''' 
+                    #Salary Estimate
+                    try:
+                        salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
+                        base_dict['Salary_est'] = salary_est[counter-1].text
+                    except:
+                        pass
+                        
+                    
+                    base_dict['Source'] = "Glassdoor"
+                    base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
+                    counter = counter + 1
+                    base_scrape.append(base_dict)
+                    
+                else:
+                    #If job posting already exists then go to the next one on the page
+                    counter = counter + 1
+                    continue
             
             print(s + ' : Page ' + str(p+1) + ' done')
             
@@ -232,5 +241,4 @@ driver.close()
 ######
 # - add global list
 # - create dicts
-
 
