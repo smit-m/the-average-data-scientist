@@ -54,7 +54,7 @@ options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 
-states_list = open('states_list.txt', 'r')
+states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
 states = states_list.read().split('\n')
@@ -78,10 +78,6 @@ e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(
 #l.close()
 #l = open('logfile.txt', 'a')
 
-#f = open('glassdoor.txt', 'a')
-#f.write('Date' + '|' + 'Sr_No' + '|' + 'Designation' + '|' + 'Company' + '|' + 'Location' + '|' + 'Days_Ago' + '|' + 'New_Listing' + '|' + 'Salary_Estimate' + '|' + 'URL' + '|' + 'JobListingID' + '\n')
-#f.close()
-#f = open('glassdoor.txt', 'a')
 
 global_jobURLs = []
 base_scrape = []
