@@ -4,14 +4,15 @@ from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from urllib.parse import quote_plus
 from pymongo import errors as pme
 from pymongo import MongoClient
 
 
 def db_connect():
     with open('db.credential', 'r', encoding='utf-8') as fhand:
-        URI, db, col = fhand.read().strip().split('\n')
-        return MongoClient(URI)[db][col]
+        uri, db, col = fhand.read().strip().split('\n')
+        return MongoClient(uri)[db][col]
 
 
 def close_popup(chrome_driver):
@@ -191,7 +192,7 @@ def scrape_basic_1(chrome_driver, out, existing_urls):
         else:
             job_out['Location'] = location
         # 2.5: add capture timestamp
-        job_out['Time_captured'] = time.time()
+        job_out['Time_captured'] = time.strftime("%Y-%m-%d")
         # 2.6: add source
         job_out['Source'] = 'Indeed'
         # 2.7: gather all information and append to output list
@@ -212,10 +213,10 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
     :return:
     """
     # Show current query combination
-    print('\n' + q_title.replace('+', ' '), q_state)
+    print('\n{} | {}'.format(q_title, q_state))
     # Generate search url
     search_url = 'https://www.indeed.com/jobs?q={}&l={}&sort=date'.format(
-        q_title, q_state)
+        quote_plus(q_title), quote_plus(q_state))
     # Open up 1st search page
     chrome_driver.get(search_url)
     # Scrape 100 (or less) pages
@@ -234,10 +235,10 @@ def scrape_basic_100(chrome_driver, q_title, q_state, out, existing_urls, pages_
                            existing_urls=existing_urls)
             # find and press "next" button
             if not pages_to_search == 1:
+                chrome_driver.execute_script("window.scrollTo(0, 100000)")
                 next_b = find_next_b(chrome_driver)
                 if next_b:
                     try:
-                        chrome_driver.execute_script("window.scrollTo(0, 100000)")
                         next_b.click()
                     except sce.WebDriverException:
                         print('\r\nNEXT BUTTON NOT CLICKABLE, MOVING ON...\r\n')
@@ -335,10 +336,13 @@ def exec_scrape(q_titles, q_states, pts=101):
     :param pts: How many pages to go through for each combination
     :return: Basic output as a list
     """
+    # Print execution time and date
+    print('\r\n\r\n\r\n'+'-'*12+' {} '.format(time.ctime(time.time()))+'-'*12+'\r\n')
     # Configure ChromeDriver (headless)
     c_options = Options()
     c_options.add_argument('--headless')
     c_options.add_argument('--disable-gpu')
+    c_options.add_argument("--incognito")
     c_path = '{}/chromedriver'.format(os.getcwd())
     # Connect to database
     collection = db_connect()
@@ -353,8 +357,8 @@ def exec_scrape(q_titles, q_states, pts=101):
     # Open up a chrome driver session
     chrome = webdriver.Chrome(c_path, chrome_options=c_options)
     # Loop through all query combinations and scrape basic information (Scrape basic)
-    for q_title in q_titles:
-        for q_state in q_states:
+    for q_state in q_states:
+        for q_title in q_titles:
             # Scrape current search combination
             scrape_basic_100(chrome_driver=chrome,
                              q_title=q_title,
@@ -408,9 +412,9 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 # Read query inputs from files
 with open('q_jobtitles.txt', 'r', encoding='utf-8') as fh:
-    qt = list(i.replace(' ', '+') for i in fh.read().strip().split('\n'))
+    qt = list(i for i in fh.read().strip().split('\n') if not i.startswith('#'))
 with open('q_states.txt', 'r', encoding='utf-8') as fh:
-    qs = list(i for i in fh.read().strip().split('\n') if not i.startswith('#'))
+    qs = list(j for j in fh.read().strip().split('\n') if not j.startswith('#'))
 
 # Execute scrape
 exec_scrape(q_titles=qt, q_states=qs, pts=101)
