@@ -58,6 +58,7 @@ options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 # chrome_path = '{}/chromedriver'.format(os.getcwd())
 
+# Same function as before (read query inputs). Swap back if problematic
 with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
     states = states_list.read().split('\n')
     jobs = jobs_list.read().split('\n')
@@ -96,16 +97,24 @@ for jobtitle in jobs:
         searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
         searchbutton.click()
         time.sleep(2)
-        
+
+        # Cleaner version of code chunk below. Swap back if problematic
         try:
-            jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
-            jobs = int(jobs_count.text.replace(' Jobs', '').replace(',', ''))
-        except:
-            jobs = 0
-        if jobs == 0:
+            int(driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p").text.replace(' Jobs', '').replace(',', ''))
+        except:  # If failed
             pages = 0
-        else:
+        else:  # If succeeded
             pages = 30
+
+        # try:
+        #     jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
+        #     jobs = int(jobs_count.text.replace(' Jobs', '').replace(',', ''))
+        # except:
+        #     jobs = 0
+        # if jobs == 0:
+        #     pages = 0
+        # else:
+        #     pages = 30
             
         
         for p in range(pages):
