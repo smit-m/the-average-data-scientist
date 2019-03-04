@@ -6,8 +6,9 @@ from fake_useragent import UserAgent
 #from selenium.webdriver.common.by import By
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
-import time
+from pymongo import errors as pme
 from pymongo import MongoClient
+import time
 import os
 
 # Setup working directory to script's location
@@ -51,90 +52,56 @@ def db_connect():
 
 
 # Configure Chrome driver
-# ua = UserAgent()
-# dcap = dict(DesiredCapabilities.PHANTOMJS)
-# dcap["phantomjs.page.settings.userAgent"] = ua.random
-# service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = 'chromedriver'
 # chrome_path = '{}/chromedriver'.format(os.getcwd())
 
-with open('temp_states_list.txt', 'r') as states_list, \
-        open('job_titles.txt', 'r') as jobs_list:
+with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
     states = states_list.read().split('\n')
     jobs = jobs_list.read().split('\n')
 
-
-# states_list = open('temp_states_list.txt', 'r')
-# jobs_list = open('job_titles.txt', 'r')
-#
-# states = states_list.read().split('\n')
-# jobs = jobs_list.read().split('\n')
-#
-# states_list.close()
-# jobs_list.close()
-
-
-
 # Get url list from db
-# global_urls = set(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-global_urls = []
+try:
+    global_urls = set(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+except pme.ServerSelectionTimeoutError:
+    print('DB server timed out. Global_urls set to empty')
+    global_urls = list()
+except ValueError:
+    print('Db.credential file content error. Global_urls set to empty')
+    global_urls = list()
 
 new_urls = []
-
-
-#l = open('logfile.txt', 'a')
-#l.write('DateTime' + '|' + 'State' + '|' + 'SearchLoad' + '|' + 'Jobs_Found' + '\n')
-#l.close()
-#l = open('logfile.txt', 'a')
-
-
-
 base_scrape = []
 srno = 0
 
 # Search page load detection
 driver = start_search_session(c_path=chrome_path, c_options=options)
-if driver:
-    print('Good search page obtained')
-elif not driver:
-    print('Bad search page. Try again after some time')
-time.sleep(3)
-
-
 
 for jobtitle in jobs:
     for s in states:
         
-        
-        #l.write(time.strftime("%Y-%m-%d %H:%M:%S") + '|' + s + '|')
-        
-        #look for the keyword input box
+        # look for the keyword input box
         jt = driver.find_element_by_xpath("//input[@id = 'sc.keyword']")
         jt.clear()
         jt.send_keys(jobtitle)
         
-        #look for the location input box
+        # look for the location input box
         jl = driver.find_element_by_xpath("//input[@id = 'sc.location']")
         jl.clear()
         jl.send_keys(s)
         
-        #click on the search button
+        # click on the search button
         searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
         searchbutton.click()
-        #l.write('Success' + '|')
         time.sleep(2)
         
         try:
             jobs_count = driver.find_element_by_xpath("//div[@id = 'MainColSummary']/p")
             jobs = int(jobs_count.text.replace(' Jobs', '').replace(',', ''))
-            #l.write(str(jobs) + '\n')
         except:
-            #l.write('0' + '\n')
             jobs = 0
-            
         if jobs == 0:
             pages = 0
         else:
@@ -142,49 +109,48 @@ for jobtitle in jobs:
             
         
         for p in range(pages):
-            
               
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
                 base_dict = {"Source": 'Glassdoor'}
                                 
-                #Capture the URL of the job posting
+                # Capture the URL of the job posting
                 try:
                     url_element = job.find_element_by_class_name('jobLink')
                     url = url_element.get_attribute('href')
                 except:
                     continue
                 
-                #Check if the job posting already exists in the DB or previous run 
+                # Check if the job posting already exists in the DB or previous run
                 if not url in global_urls and not url in new_urls:
                     
-                    #add URL and JobListingID to the DB
+                    # add URL and JobListingID to the DB
                     base_dict['URL'] = url
                     base_dict['JobListingId'] = url.split('jobListingId=', 1)[1]
                 
-                    #Designation
+                    # Designation
                     try:
                         designation = job.find_elements_by_class_name('jobLink')
                         base_dict['Designation'] = designation[1].text
                     except:
                         pass
                         
-                    #Company
+                    # Company
                     try:
                         company = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")
                         base_dict['Company'] = company[counter-1].text
                     except:
                         pass
                        
-                    #Location
+                    # Location
                     try:
                         loc = job.find_elements_by_xpath("//div/span[@class='subtle loc']")
                         base_dict['Location'] = loc[counter-1].text
                     except:
                         pass
                     
-                    #Days ago
+                    # Days ago
                     try:
                         days_ago = job.find_elements_by_xpath("//span[@class='minor']")
                         base_dict['Time_posted'] = days_ago[counter-1].text
@@ -199,7 +165,7 @@ for jobtitle in jobs:
                     except:
                         pass
                     ''' 
-                    #Salary Estimate
+                    # Salary Estimate
                     try:
                         salary_est = job.find_elements_by_xpath('//span[@class="green small"]')
                         base_dict['Salary_est'] = salary_est[counter-1].text
@@ -214,7 +180,7 @@ for jobtitle in jobs:
                     new_urls.append(url)
                     
                 else:
-                    #If job posting already exists then go to the next one on the page
+                    # If job posting already exists then go to the next one on the page
                     counter = counter + 1
                     continue
             
@@ -223,25 +189,24 @@ for jobtitle in jobs:
             if p != 29:
                 nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
                 try:
-                    #Clicking on the "Next" button if it exists
+                    # Clicking on the "Next" button if it exists
                     nextbutton[0].click()
                     time.sleep(2)
-                    #Closing the popup if it pop ups
+                    # Closing the popup if it pop ups
                     XBtn = driver.find_elements_by_class_name('xBtn')
                     if len(XBtn) > 0:
                         XBtn[0].click()
                     else:
                         pass
                 except:
-                    #Going through the next iteration of state as end of pages is reached
+                    # Going through the next iteration of state as end of pages is reached
                     break
         
         
 
 
-#global_urls.append(new_urls)
+# global_urls.append(new_urls)
 
-#l.close()
 # Close current chrome session after each search combination finishes
 driver.close()
 
