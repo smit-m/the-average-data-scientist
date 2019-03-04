@@ -14,7 +14,7 @@ import os
 os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 
 
-def start_search_session(c_path, c_options, dcap, sargs, tries=20):
+def start_search_session(c_path, c_options, tries=20):
     """
     This function tries to open the glassdoor search window. If it detects login page, it will
     then close the chrome session and opens another one to try the luck. After a number of
@@ -29,9 +29,7 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=20):
     """
     for i in range(1, tries + 1):
         # Create Chrome webdriver session
-        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options,
-                                          desired_capabilities=dcap,
-                                          service_args=sargs)
+        chrome_session = webdriver.Chrome(c_path, chrome_options=c_options)
         # Get search page
         chrome_session.get('https://www.glassdoor.com/sitedirectory/title-jobs.htm')
         try:  # Detect bad page
@@ -49,14 +47,14 @@ def start_search_session(c_path, c_options, dcap, sargs, tries=20):
 
 
 # Configure Chrome driver
-ua = UserAgent()
-dcap = dict(DesiredCapabilities.PHANTOMJS)
-dcap["phantomjs.page.settings.userAgent"] = ua.random
-service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
+# ua = UserAgent()
+# dcap = dict(DesiredCapabilities.PHANTOMJS)
+# dcap["phantomjs.page.settings.userAgent"] = ua.random
+# service_args = ['--ssl-protocol=any', '--ignore-ssl-errors=true']
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
-chrome_path = 'chromedriver'
+chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
@@ -90,8 +88,7 @@ base_scrape = []
 srno = 0
 
 # Search page load detection
-driver = start_search_session(c_path=chrome_path, c_options=options, dcap=dcap,
-                              sargs=service_args)
+driver = start_search_session(c_path=chrome_path, c_options=options)
 if driver:
     print('Good search page obtained')
 elif not driver:
