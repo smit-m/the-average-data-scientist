@@ -12,7 +12,7 @@ import time
 import os
 
 # Setup working directory to script's location
-os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
+# os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 
 
 def start_search_session(c_path, c_options, tries=20):
