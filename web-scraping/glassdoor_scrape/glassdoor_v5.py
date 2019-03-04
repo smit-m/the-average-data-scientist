@@ -115,7 +115,6 @@ for jobtitle in jobs:
         #     pages = 0
         # else:
         #     pages = 30
-            
         
         for p in range(pages):
               
@@ -132,7 +131,8 @@ for jobtitle in jobs:
                     continue
                 
                 # Check if the job posting already exists in the DB or previous run
-                if not url in global_urls and not url in new_urls:
+                # if not url in global_urls and not url in new_urls:
+                if url not in global_urls + new_urls:
                     
                     # add URL and JobListingID to the DB
                     base_dict['URL'] = url
