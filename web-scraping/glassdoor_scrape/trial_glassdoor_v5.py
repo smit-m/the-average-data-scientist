@@ -56,6 +56,8 @@ options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
 chrome_path = '{}/chromedriver'.format(os.getcwd())
 
+with open
+
 states_list = open('temp_states_list.txt', 'r')
 jobs_list = open('job_titles.txt', 'r')
 
@@ -74,8 +76,8 @@ def db_connect():
 # collection = db_connect()
 
 # Get url list from db
-global_urls = list(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-# global_urls = []
+# global_urls = list(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+global_urls = []
 new_urls = []
 
 # l = open('logfile.txt', 'a')
