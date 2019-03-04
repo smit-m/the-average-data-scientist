@@ -55,8 +55,8 @@ def db_connect():
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
-chrome_path = 'chromedriver'
-# chrome_path = '{}/chromedriver'.format(os.getcwd())
+# chrome_path = 'chromedriver'
+chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 # Same function as before (read query inputs). Swap back if problematic
 with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
@@ -65,7 +65,7 @@ with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r
 
 # Get url list from db
 try:
-    global_urls = set(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+    global_urls = list(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
 except pme.ServerSelectionTimeoutError:  # If connection timed out
     print('DB server timed out. Global_urls set to empty')
     global_urls = list()
