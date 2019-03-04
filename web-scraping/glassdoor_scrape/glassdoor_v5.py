@@ -212,7 +212,19 @@ for jobtitle in jobs:
                     break
         
         
-
+# Write to db
+try:
+    collection = db_connect()
+except:
+    pass
+else:
+    if len(base_scrape) > 0:
+        insert_counter = 0
+        for item in base_scrape:
+            collection.insert_one(item)
+            insert_counter += 1
+            continue
+        print('{} record(s) inserted'.format(insert_counter))
 
 # global_urls.append(new_urls)
 
