@@ -64,13 +64,15 @@ states_list.close()
 jobs_list.close()
 
 
-
+'''
 with open('db.credential', 'r', encoding='utf-8') as fhand:
     collection = MongoClient(fhand.read().strip()).tads01.Test
 
 # Get url list from db
-e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-
+global_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+'''
+global_urls = []
+new_urls = []
 
 
 #l = open('logfile.txt', 'a')
@@ -79,7 +81,7 @@ e_urls = set(i['URL'] for i in collection.find({}, {"URL": 1, "_id": 0}) if len(
 #l = open('logfile.txt', 'a')
 
 
-global_jobURLs = []
+
 base_scrape = []
 srno = 0
 
@@ -138,6 +140,15 @@ for jobtitle in jobs:
             for job in jl:
                 base_dict = {"Source": 'Glassdoor'}
                                 
+                #Job URL and JobListingID
+                try:
+                    url = job.find_element_by_class_name('jobLink')
+                    base_dict['URL'] = url.get_attribute('href')
+                    base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
+                    #global_jobURLs.append(url.get_attribute('href'))
+                except:
+                    pass
+                
                 #Designation
                 try:
                     designation = job.find_elements_by_class_name('jobLink')
@@ -181,14 +192,7 @@ for jobtitle in jobs:
                 except:
                     pass
                     
-                #Job URL and JobListingID
-                try:
-                    url = job.find_element_by_class_name('jobLink')
-                    base_dict['URL'] = url.get_attribute('href')
-                    base_dict['JobListingId'] = url.get_attribute('href').split('jobListingId=', 1)[1]
-                    global_jobURLs.append(url.get_attribute('href'))
-                except:
-                    pass
+                
                 
                 base_dict['Source'] = "Glassdoor"
                 base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
