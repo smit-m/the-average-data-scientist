@@ -202,6 +202,7 @@ for jobtitle in jobs:
                     base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
                     counter = counter + 1
                     base_scrape.append(base_dict)
+                    new_urls.append(url)
                     
                 else:
                     #If job posting already exists then go to the next one on the page
@@ -229,7 +230,7 @@ for jobtitle in jobs:
         
 
 
-global_jobURLs.clear()
+#global_urls.append(new_urls)
 
 #l.close()
 # Close current chrome session after each search combination finishes
