@@ -140,7 +140,7 @@ for jobtitle in jobs:
             for job in jl:
                 base_dict = {"Source": 'Glassdoor'}
                                 
-                #Job URL and JobListingID
+                #Capture the URL of the job posting
                 try:
                     url_element = job.find_element_by_class_name('jobLink')
                     url = url_element.get_attribute('href')
