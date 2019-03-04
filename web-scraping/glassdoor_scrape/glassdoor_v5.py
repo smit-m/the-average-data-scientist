@@ -66,10 +66,10 @@ with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r
 # Get url list from db
 try:
     global_urls = set(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-except pme.ServerSelectionTimeoutError:
+except pme.ServerSelectionTimeoutError:  # If connection timed out
     print('DB server timed out. Global_urls set to empty')
     global_urls = list()
-except ValueError:
+except ValueError:  # If db.cred file content error
     print('Db.credential file content error. Global_urls set to empty')
     global_urls = list()
 
