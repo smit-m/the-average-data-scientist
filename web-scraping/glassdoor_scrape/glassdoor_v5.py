@@ -198,11 +198,15 @@ for jobtitle in jobs:
                         pass
                         
                     
-                    
                     base_dict['Source'] = "Glassdoor"
                     base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
                     counter = counter + 1
                     base_scrape.append(base_dict)
+                    
+                else:
+                    #If job posting already exists then go to the next one on the page
+                    counter = counter + 1
+                    continue
             
             print(s + ' : Page ' + str(p+1) + ' done')
             
