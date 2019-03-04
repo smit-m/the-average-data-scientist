@@ -5,3 +5,4 @@
 db.credential
 chromedriver.exe
 web-scraping/indeed_scrape_v1.3/chromedriver
+web-scraping/glassdoor_scrape/chromedriver
