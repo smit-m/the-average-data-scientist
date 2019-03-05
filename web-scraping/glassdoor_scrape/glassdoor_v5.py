@@ -218,7 +218,14 @@ for jobtitle in jobs:
                 except:
                     # Going through the next iteration of state as end of pages is reached
                     break
-
+        
+        
+        #Code to writing to DB as part of for loop
+        #####
+        ####
+        ###
+        ##
+        #
 
 # Write to db
 try:
