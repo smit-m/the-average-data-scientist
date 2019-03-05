@@ -198,7 +198,7 @@ for jobtitle in jobs:
             scrape_one_iter(chrome_driver=driver, g_urls=global_urls, out_ls=base_scrape, j_title=jobtitle,
                             j_location=s)
         except:  # If any unexpected error occurred
-            print('RANDOM ERROR. Skip to next iteration')
+            print('UNEXPECTED ERROR. Skip to next iteration')
         finally:  # Call push_to_db() no matter what happened
             push_to_db(base_scrape)
 
