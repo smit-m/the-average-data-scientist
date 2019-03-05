@@ -62,7 +62,7 @@ def read(file):
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 # Define variables
-states = read('temp_states_list.txt')
+states = read('states_list.txt')
 jobs = read('job_titles.txt')
 global_urls = get_existing_urls(db_connect())
 base_scrape = list()
