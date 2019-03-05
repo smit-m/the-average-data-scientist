@@ -194,25 +194,6 @@ for jobtitle in jobs:
 
             # Code to writing to DB as part of for loop (and add base_scrape = [] inside the loop then)
             push_to_db(base_scrape)
-            ####
-            ###
-            ##
-            #
-'''
-# Write to db
-try:
-    collection = db_connect()
-except:
-    pass
-else:
-    if len(base_scrape) > 0:
-        insert_counter = 0
-        for item in base_scrape:
-            collection.insert_one(item)
-            insert_counter += 1
-            continue
-        print('{} record(s) inserted'.format(insert_counter))
-'''
 
 
 # Close current chrome session after each search combination finishes
