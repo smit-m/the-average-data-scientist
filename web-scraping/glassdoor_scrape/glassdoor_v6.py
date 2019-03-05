@@ -110,6 +110,7 @@ for jobtitle in jobs:
                         if url in global_urls:  # Skip iteration if url exists in db
                             continue
                         elif url not in global_urls:  # Scrape on if url does not exist
+
                             # Append url to global_urls list
                             global_urls.append(url)
 
