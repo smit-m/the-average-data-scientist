@@ -218,7 +218,13 @@ else:
 # Close current chrome session after each search combination finishes
 driver.quit()
 
-
+# To-do
+# 1. Create function scraping part (Core part - for 30 pages);
+# 2. Put Try/Except around the scrape function under the 2 for loops;
+# 2.1 Under the Except put an emergence method to insert everything we had on hand to db;
+# 3. Create log file for each iteration (success/unseccess, job amount, inserted counter, etc.);
+# 4. More cleaning (maybe);
+# 5. Detail pages scraping (maybe)
 
 
 ### Filter out "Indeed Prime" from the company field
