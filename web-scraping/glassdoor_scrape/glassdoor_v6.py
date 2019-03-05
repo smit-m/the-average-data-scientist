@@ -69,10 +69,8 @@ def push_to_db(dict_list):
             for item in dict_list:
                 collection.insert_one(item)
                 insert_counter += 1
-                
+                continue
             print('{} record(s) inserted'.format(insert_counter))
-
-
 
 
 # Set working directory
