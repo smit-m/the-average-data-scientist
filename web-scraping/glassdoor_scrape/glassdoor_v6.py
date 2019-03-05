@@ -57,6 +57,24 @@ def read(file):
         return fh.read().strip().split('\n')
 
 
+def push_to_db(dict_list):
+    try:
+        collection = db_connect()
+    except:
+        print('Bad Connection. Insertion task failed!')
+        pass
+    else:
+        if len(dict_list) > 0:
+            insert_counter = 0
+            for item in dict_list:
+                collection.insert_one(item)
+                insert_counter += 1
+                
+            print('{} record(s) inserted'.format(insert_counter))
+
+
+
+
 # Set working directory
 # os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -65,7 +83,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 states = read('states_list.txt')
 jobs = read('job_titles.txt')
 global_urls = get_existing_urls(db_connect())
-base_scrape = list()
+#base_scrape = list()
 
 # Configure Chrome driver
 options = Options()
@@ -79,6 +97,7 @@ driver = webdriver.Chrome(chrome_path, options=options)
 for jobtitle in jobs:
     for s in states:
         # Get search page
+        base_scrape = list()
         if obtain_search_page(driver):
             # Enter search keywords
             jt = driver.find_element_by_id("sc.keyword")
@@ -174,12 +193,12 @@ for jobtitle in jobs:
                             break
 
             # Code to writing to DB as part of for loop (and add base_scrape = [] inside the loop then)
-            #####
+            push_to_db(base_scrape)
             ####
             ###
             ##
             #
-
+'''
 # Write to db
 try:
     collection = db_connect()
@@ -193,9 +212,12 @@ else:
             insert_counter += 1
             continue
         print('{} record(s) inserted'.format(insert_counter))
+'''
+
 
 # Close current chrome session after each search combination finishes
 driver.quit()
+
 
 
 
