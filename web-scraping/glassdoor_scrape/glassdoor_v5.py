@@ -12,7 +12,7 @@ import time
 import os
 
 # Setup working directory to script's location
-os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
+# os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 
 
 def start_search_session(c_path, c_options, tries=20):
@@ -82,17 +82,17 @@ driver = start_search_session(c_path=chrome_path, c_options=options)
 
 for jobtitle in jobs:
     for s in states:
-        
+
         # look for the keyword input box
         jt = driver.find_element_by_xpath("//input[@id = 'sc.keyword']")
         jt.clear()
         jt.send_keys(jobtitle)
-        
+
         # look for the location input box
         jl = driver.find_element_by_xpath("//input[@id = 'sc.location']")
         jl.clear()
         jl.send_keys(s)
-        
+
         # click on the search button
         searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
         searchbutton.click()
@@ -116,14 +116,14 @@ for jobtitle in jobs:
         #     pages = 0
         # else:
         #     pages = 30
-        
+
         for p in range(pages):
-              
+
             jl = driver.find_elements_by_class_name('jl')
             counter = 1
             for job in jl:
                 base_dict = {"Source": 'Glassdoor'}
-                                
+
                 # Capture the URL of the job posting
                 try:
                     url = job.find_element_by_class_name('jobLink').get_attribute('href')
@@ -131,15 +131,15 @@ for jobtitle in jobs:
                     # url = url_elementc
                 except:
                     continue
-                
+
                 # Check if the job posting already exists in the DB or previous run
                 if url not in global_urls + new_urls:
                 # if not url in global_urls and not url in new_urls:
-                    
+
                     # add URL and JobListingID to the DB
                     base_dict['URL'] = url
                     base_dict['JobListingId'] = url.split('jobListingId=', 1)[1]
-                
+
                     # Designation
                     try:
                         base_dict['Designation'] =job.find_elements_by_class_name('jobLink')[1].text
@@ -147,7 +147,7 @@ for jobtitle in jobs:
                         # base_dict['Designation'] = designation[1].text
                     except:
                         pass
-                        
+
                     # Company
                     try:
                         base_dict['Company'] = job.find_elements_by_xpath("//div[@class='flexbox empLoc']/div[1]")[counter - 1].text
@@ -155,7 +155,7 @@ for jobtitle in jobs:
                         # base_dict['Company'] = company[counter-1].text
                     except:
                         pass
-                       
+
                     # Location
                     try:
                         base_dict['Location'] = job.find_elements_by_xpath("//div/span[@class='subtle loc']")[counter - 1].text
@@ -163,7 +163,7 @@ for jobtitle in jobs:
                         # base_dict['Location'] = loc[counter-1].text
                     except:
                         pass
-                    
+
                     # Days ago
                     try:
                         # base_dict['Time_posted'] = job.find_elements_by_xpath("//span[@class='minor']")[counter - 1].text
@@ -172,7 +172,7 @@ for jobtitle in jobs:
                         # base_dict['Time_posted'] = days_ago[counter-1].text
                     except:
                         pass
-                    
+
                     '''
                     # New Listing - not relevant at this point
                     try:
@@ -180,7 +180,7 @@ for jobtitle in jobs:
                         base_dict['NewListing_flag'] = new_listing[0].text
                     except:
                         pass
-                    ''' 
+                    '''
                     # Salary Estimate
                     try:
                         base_dict['Salary_est'] = job.find_elements_by_xpath('//span[@class="green small"]')[counter - 1].text
@@ -188,21 +188,21 @@ for jobtitle in jobs:
                         # base_dict['Salary_est'] = salary_est[counter-1].text
                     except:
                         pass
-                        
-                    
+
+
                     # base_dict['Source'] = "Glassdoor"
                     base_dict['Time_Captured'] = time.strftime("%Y-%m-%d")
                     counter = counter + 1
                     base_scrape.append(base_dict)
                     new_urls.append(url)
-                    
+
                 else:
                     # If job posting already exists then go to the next one on the page
                     counter = counter + 1
                     continue
-            
+
             print(s + ' : Page ' + str(p+1) + ' done')
-            
+
             if p != 29:
                 nextbutton = driver.find_elements_by_xpath("//div[@class='pagingControls cell middle']/ul/li[@class = 'next']/a")
                 try:
@@ -218,8 +218,8 @@ for jobtitle in jobs:
                 except:
                     # Going through the next iteration of state as end of pages is reached
                     break
-        
-        
+
+
 # Write to db
 try:
     collection = db_connect()
