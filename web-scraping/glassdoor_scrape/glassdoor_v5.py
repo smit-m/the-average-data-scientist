@@ -220,7 +220,7 @@ for jobtitle in jobs:
                     break
         
         
-        #Code to writing to DB as part of for loop
+        #Code to writing to DB as part of for loop (and add base_scrape = [] inside the loop then)
         #####
         ####
         ###
