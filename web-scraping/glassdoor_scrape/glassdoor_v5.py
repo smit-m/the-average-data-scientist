@@ -12,7 +12,7 @@ import time
 import os
 
 # Setup working directory to script's location
-# os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
+os.chdir('/Volumes/GitHub/the-average-data-scientist/web-scraping/glassdoor_scrape')
 
 
 def start_search_session(c_path, c_options, tries=20):
@@ -60,8 +60,8 @@ chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 # Same function as before (read query inputs). Swap back if problematic
 with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
-    states = states_list.read().split('\n')
-    jobs = jobs_list.read().split('\n')
+    states = states_list.read().strip().split('\n')
+    jobs = jobs_list.read().strip().split('\n')
 
 # Get url list from db
 try:
@@ -166,7 +166,8 @@ for jobtitle in jobs:
                     
                     # Days ago
                     try:
-                        base_dict['Time_posted'] = job.find_elements_by_xpath("//span[@class='minor']")[counter - 1].text
+                        # base_dict['Time_posted'] = job.find_elements_by_xpath("//span[@class='minor']")[counter - 1].text
+                        base_dict['Time_posted'] = job.find_element_by_css_selector('.minor').text
                         # days_ago = job.find_elements_by_xpath("//span[@class='minor']")
                         # base_dict['Time_posted'] = days_ago[counter-1].text
                     except:
