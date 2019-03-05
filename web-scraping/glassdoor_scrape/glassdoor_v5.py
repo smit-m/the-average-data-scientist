@@ -59,7 +59,7 @@ options.add_argument("--incognito")
 chrome_path = '{}/chromedriver'.format(os.getcwd())
 
 # Same function as before (read query inputs). Swap back if problematic
-with open('temp_states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
+with open('states_list.txt', 'r') as states_list, open('job_titles.txt', 'r') as jobs_list:
     states = states_list.read().strip().split('\n')
     jobs = jobs_list.read().strip().split('\n')
 
