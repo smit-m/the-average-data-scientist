@@ -1,10 +1,50 @@
+import os
+import time
 from selenium import webdriver
 from selenium.common import exceptions as sce
 from selenium.webdriver.chrome.options import Options
 from pymongo import errors as pme
 from pymongo import MongoClient
-import time
-import os
+
+
+def read(file):
+    # Same function as before (read query inputs)
+    with open(file, 'r') as fh:
+        return fh.read().strip().split('\n')
+
+
+def db_connect():
+    with open('db.credential', 'r', encoding='utf-8') as fhand:
+        uri, db, col = fhand.read().strip().split('\n')
+        return MongoClient(uri)[db][col]
+
+
+def get_existing_urls():
+    # Get existing url list from db
+    try:
+        return list(i['URL'] for i in db_connect().find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
+    except pme.ServerSelectionTimeoutError:  # If connection timed out
+        print('DB server timed out. Global_urls set to empty')
+        return list()
+    except ValueError:  # If db cred file content error
+        print('Db.credential file content error. Global_urls set to empty')
+        return list()
+
+
+def push_to_db(dict_list):
+    try:
+        collection = db_connect()
+    except:
+        print('Bad Connection. Insertion task failed!')
+        pass
+    else:
+        if len(dict_list) > 0:
+            insert_counter = 0
+            for item in dict_list:
+                collection.insert_one(item)
+                insert_counter += 1
+                continue
+            print('{} record(s) inserted'.format(insert_counter))
 
 
 def obtain_search_page(chrome_driver, tries=5):
@@ -33,44 +73,103 @@ def obtain_search_page(chrome_driver, tries=5):
     return False
 
 
-def db_connect():
-    with open('db.credential', 'r', encoding='utf-8') as fhand:
-        uri, db, col = fhand.read().strip().split('\n')
-        return MongoClient(uri)[db][col]
+def scrape_one_iter(chrome_driver, g_urls, out_ls, j_title, j_location):
+    # Get search page
+    if obtain_search_page(chrome_driver):
+        # Enter search keywords
+        jt = chrome_driver.find_element_by_id("sc.keyword")
+        jt.clear()
+        jt.send_keys(j_title)
 
+        # Enter location input
+        jl = chrome_driver.find_element_by_id("sc.location")
+        jl.clear()
+        jl.send_keys(j_location)
 
-def get_existing_urls(col):
-    # Get existing url list from db
-    try:
-        return list(i['URL'] for i in col.find({}, {"URL": 1, "_id": 0}) if len(i) > 0)
-    except pme.ServerSelectionTimeoutError:  # If connection timed out
-        print('DB server timed out. Global_urls set to empty')
-        return list()
-    except ValueError:  # If db cred file content error
-        print('Db.credential file content error. Global_urls set to empty')
-        return list()
+        # Click on the search button
+        searchbutton = chrome_driver.find_element_by_id("HeroSearchButton")
+        searchbutton.click()
+        print('\r\n{} | {}'.format(j_title, j_location))
+        time.sleep(2)
 
+        # Loop through pages (maximum 30 pages)
+        for p in range(30):
+            for job in chrome_driver.find_elements_by_class_name('jl'):
+                base_dict = {"Source": 'Glassdoor'}
+                # Job content check up
+                try:
+                    url = job.find_element_by_class_name('jobLink').get_attribute('href')
+                except sce.NoSuchElementException:  # skip iteration if no url
+                    continue
+                else:  # Scrape on if url found
+                    # Check url for duplicates
+                    if url in g_urls:  # Skip iteration if url exists in db
+                        continue
+                    elif url not in g_urls:  # Scrape on if url does not exist
 
-def read(file):
-    # Same function as before (read query inputs)
-    with open(file, 'r') as fh:
-        return fh.read().strip().split('\n')
+                        # Append url to global_urls list
+                        g_urls.append(url)
 
+                        # Add URL and JobListingID to output dict
+                        base_dict['URL'] = url
+                        base_dict['JobListingId'] = url.split('jobListingId=', 1)[1]
+                        # Grab Designation
+                        try:
+                            base_dict['Designation'] = job.find_elements_by_class_name('jobLink')[1].text
+                        except sce.NoSuchElementException:
+                            pass
+                        # Grab Company Name (DO NOT CHANGE THE .SPLIT()!)
+                        try:
+                            base_dict['Company'] = \
+                            job.find_element_by_css_selector(".flexbox.empLoc").text.split(' – ')[0]
+                        except sce.NoSuchElementException:
+                            pass
+                        # Grab Location
+                        try:
+                            base_dict['Location'] = job.find_element_by_css_selector(".subtle.loc").text
+                        except sce.NoSuchElementException:
+                            pass
+                        # Grab Days Ago
+                        try:
+                            base_dict['Time_posted'] = job.find_element_by_css_selector('.minor').text
+                        except sce.NoSuchElementException:
+                            pass
+                        # Grab Salary Estimate
+                        try:
+                            base_dict['Salary_est'] = job.find_element_by_css_selector('.green.small').text
+                        except sce.NoSuchElementException:
+                            pass
+                        # Add Time Captured to output dictionary
+                        base_dict['Time_captured'] = time.strftime("%Y-%m-%d")
 
-def push_to_db(dict_list):
-    try:
-        collection = db_connect()
-    except:
-        print('Bad Connection. Insertion task failed!')
-        pass
-    else:
-        if len(dict_list) > 0:
-            insert_counter = 0
-            for item in dict_list:
-                collection.insert_one(item)
-                insert_counter += 1
-                continue
-            print('{} record(s) inserted'.format(insert_counter))
+                        # Append to final output list or directly write to db
+                        out_ls.append(base_dict)
+                    else:
+                        # If job posting already exists then go to the next one on the page
+                        continue
+
+            # Show status
+            print('{} : Page {} done'.format(j_location, p + 1))
+
+            # Get ready for next iteration
+            if p != 29:
+                try:
+                    nxtb = chrome_driver.find_element_by_class_name("next")
+                except sce.NoSuchElementException:  # Break if 'next' button not found
+                    break
+                else:  # If 'next' button found
+                    try:  # Detect if disabled
+                        nxtb.find_element_by_class_name('disabled')
+                    except sce.NoSuchElementException:  # If not disabled
+                        nxtb.click()
+                        time.sleep(2)
+                        try:  # Close the popup if exist
+                            chrome_driver.find_element_by_class_name('xBtn').click()
+                        except sce.NoSuchElementException:
+                            pass
+                    else:  # Break the loop if nxtb is disabled (last page hit)
+                        break
+    return
 
 
 # Set working directory
@@ -80,8 +179,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 # Define variables
 states = read('states_list.txt')
 jobs = read('job_titles.txt')
-global_urls = get_existing_urls(db_connect())
-#base_scrape = list()
+global_urls = get_existing_urls()
 
 # Configure Chrome driver
 options = Options()
@@ -94,103 +192,13 @@ driver = webdriver.Chrome(chrome_path, options=options)
 
 for jobtitle in jobs:
     for s in states:
-        # Get search page
         base_scrape = list()
-        if obtain_search_page(driver):
-            # Enter search keywords
-            jt = driver.find_element_by_id("sc.keyword")
-            jt.clear()
-            jt.send_keys(jobtitle)
-
-            # Enter location input
-            jl = driver.find_element_by_id("sc.location")
-            jl.clear()
-            jl.send_keys(s)
-
-            # Click on the search button
-            searchbutton = driver.find_element_by_id("HeroSearchButton")
-            searchbutton.click()
-            time.sleep(2)
-            print('\r\n{} | {}'.format(jobtitle, s))
-
-            # Loop through pages (maximum 30 pages)
-            for p in range(30):
-                for job in driver.find_elements_by_class_name('jl'):
-                    base_dict = {"Source": 'Glassdoor'}
-                    # Job content check up
-                    try:
-                        url = job.find_element_by_class_name('jobLink').get_attribute('href')
-                    except sce.NoSuchElementException:  # skip iteration if no url
-                        continue
-                    else:  # Scrape on if url found
-                        # Check url for duplicates
-                        if url in global_urls:  # Skip iteration if url exists in db
-                            continue
-                        elif url not in global_urls:  # Scrape on if url does not exist
-
-                            # Append url to global_urls list
-                            global_urls.append(url)
-
-                            # Add URL and JobListingID to output dict
-                            base_dict['URL'] = url
-                            base_dict['JobListingId'] = url.split('jobListingId=', 1)[1]
-                            # Grab Designation
-                            try:
-                                base_dict['Designation'] = job.find_elements_by_class_name('jobLink')[1].text
-                            except sce.NoSuchElementException:
-                                pass
-                            # Grab Company Name (DO NOT CHANGE THE .SPLIT()!)
-                            try:
-                                base_dict['Company'] = job.find_element_by_css_selector(".flexbox.empLoc").text.split(' – ')[0]
-                            except sce.NoSuchElementException:
-                                pass
-                            # Grab Location
-                            try:
-                                base_dict['Location'] = job.find_element_by_css_selector(".subtle.loc").text
-                            except sce.NoSuchElementException:
-                                pass
-                            # Grab Days Ago
-                            try:
-                                base_dict['Time_posted'] = job.find_element_by_css_selector('.minor').text
-                            except sce.NoSuchElementException:
-                                pass
-                            # Grab Salary Estimate
-                            try:
-                                base_dict['Salary_est'] = job.find_element_by_css_selector('.green.small').text
-                            except sce.NoSuchElementException:
-                                pass
-                            # Add Time Captured to output dictionary
-                            base_dict['Time_captured'] = time.strftime("%Y-%m-%d")
-
-                            # Append to final output list or directly write to db
-                            base_scrape.append(base_dict)
-                        else:
-                            # If job posting already exists then go to the next one on the page
-                            continue
-
-                # Show status
-                print('{} : Page {} done'.format(s, p+1))
-
-                # Get ready for next iteration
-                if p != 29:
-                    try:
-                        nxtb = driver.find_element_by_class_name("next")
-                    except sce.NoSuchElementException:  # Break if 'next' button not found
-                        break
-                    else:  # If 'next' button found
-                        try:  # Detect if disabled
-                            nxtb.find_element_by_class_name('disabled')
-                        except sce.NoSuchElementException:  # If not disabled
-                            nxtb.click()
-                            time.sleep(2)
-                            try:  # Close the popup if exist
-                                driver.find_element_by_class_name('xBtn').click()
-                            except sce.NoSuchElementException:
-                                pass
-                        else:  # Break the loop if nxtb is disabled (last page hit)
-                            break
-
-            # Code to writing to DB as part of for loop (and add base_scrape = [] inside the loop then)
+        try:  # Try the general Scrape() function
+            scrape_one_iter(chrome_driver=driver, g_urls=global_urls, out_ls=base_scrape, j_title=jobtitle,
+                            j_location=s)
+        except:  # If any unexpected error occurred
+            print('RANDOM ERROR. Skip to next iteration')
+        finally:  # Call push_to_db() no matter what happened
             push_to_db(base_scrape)
 
 
@@ -198,9 +206,9 @@ for jobtitle in jobs:
 driver.quit()
 
 # To-do
-# 1. Create function scraping part (Core part - for 30 pages);
-# 2. Put Try/Except around the scrape function under the 2 for loops;
-# 2.1 Under the Except put an emergence method to insert everything we had on hand to db;
+# 1. Create function scraping part (Core part - for 30 pages); (Done)
+# 2. Put Try/Except around the scrape function under the 2 For-loops; (Done)
+# 2.1 Under the Except put an emergence method to insert everything we had on hand to db; (Done)
 # 3. Create log file for each iteration (successful/unsuccessful, job amount, inserted counter, etc.);
 # 4. More cleaning (maybe);
 # 5. Detail pages scraping (maybe).
