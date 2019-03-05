@@ -97,7 +97,7 @@ for jobtitle in jobs:
         searchbutton = driver.find_element_by_xpath("//button[@id = 'HeroSearchButton']")
         searchbutton.click()
         time.sleep(2)
-        print('\r\n{} | {}'.format(jobtitle, states))
+        print('\r\n{} | {}'.format(jobtitle, s))
 
         # Cleaner version of code chunk below. Swap back if problematic
         try:
