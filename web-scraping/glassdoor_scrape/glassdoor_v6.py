@@ -180,16 +180,17 @@ os.chdir(os.path.dirname(os.path.realpath(__file__)))
 states = read('states_list.txt')
 jobs = read('job_titles.txt')
 global_urls = get_existing_urls()
+chrome_path = os.getcwd() + '/chromedriver'
 
 # Configure Chrome driver
 options = Options()
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
-chrome_path = os.getcwd() + '/chromedriver'
 
 # Open Chrome driver
 driver = webdriver.Chrome(chrome_path, options=options)
 
+# Scrape for all iterations
 for jobtitle in jobs:
     for s in states:
         base_scrape = list()
@@ -200,7 +201,6 @@ for jobtitle in jobs:
             print('RANDOM ERROR. Skip to next iteration')
         finally:  # Call push_to_db() no matter what happened
             push_to_db(base_scrape)
-
 
 # Close current chrome session after each search combination finishes
 driver.quit()
