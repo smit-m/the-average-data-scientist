@@ -103,7 +103,7 @@ def scrape_one_iter(chrome_driver, g_urls, out_ls, j_title, j_location):
                     continue
                 else:  # Scrape on if url found
                     # Check url for duplicates
-                    if url in g_urls:  # Skip iteration if url exists in db
+                    if url in g_urls:  #Skip iteration if url exists in db
                         continue
                     elif url not in g_urls:  # Scrape on if url does not exist
 
@@ -177,7 +177,7 @@ def scrape_one_iter(chrome_driver, g_urls, out_ls, j_title, j_location):
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 # Define variables
-states = read('states_list.txt')
+locations = read('location_list.txt')
 jobs = read('job_titles.txt')
 global_urls = get_existing_urls()
 chrome_path = os.getcwd() + '/chromedriver'
@@ -192,11 +192,11 @@ driver = webdriver.Chrome(chrome_path, options=options)
 
 # Scrape for all iterations
 for jobtitle in jobs:
-    for s in states:
+    for loc in locations:
         base_scrape = list()
         try:  # Try the general Scrape() function
             scrape_one_iter(chrome_driver=driver, g_urls=global_urls, out_ls=base_scrape, j_title=jobtitle,
-                            j_location=s)
+                            j_location=loc)
         except:  # If any unexpected error occurred
             print('UNEXPECTED ERROR. Skip to next iteration')
         finally:  # Call push_to_db() no matter what happened
