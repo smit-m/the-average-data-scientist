@@ -2,6 +2,8 @@ Alabama, US
 Alaska, US
 Arizona, US
 Arkansas, US
+Los Angeles, CA
+San Francisco, CA
 California, US
 Colorado, US
 Connecticut, US
@@ -10,6 +12,7 @@ Florida, US
 Georgia, US
 Hawaii, US
 Idaho, US
+Chicago, IL
 Illinois, US
 Indiana, US
 Iowa, US
