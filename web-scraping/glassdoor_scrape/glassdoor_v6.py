@@ -214,4 +214,4 @@ driver.quit()
 # 5. Detail pages scraping (maybe).
 
 
-### Filter out "Indeed Prime" from the company field
+### Filter out "Indeed Prime" from the company field - ?
