@@ -4,6 +4,7 @@ Arizona, US
 Arkansas, US
 Los Angeles, CA
 San Francisco, CA
+San Jose, CA
 California, US
 Colorado, US
 Connecticut, US
