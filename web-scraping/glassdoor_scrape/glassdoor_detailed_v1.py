@@ -2,15 +2,13 @@
 #use the db to pull the url list first and then tie it with first scrape
 
 
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from fake_useragent import UserAgent
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+import os
 import time
-import math
+from selenium import webdriver
+from selenium.common import exceptions as sce
+from selenium.webdriver.chrome.options import Options
+from pymongo import errors as pme
+from pymongo import MongoClient
 
 
 #make browser
