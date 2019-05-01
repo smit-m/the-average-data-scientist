@@ -1,4 +1,4 @@
-#get links from the list 
+#get links from the scraped list 
 #use the db to pull the url list first and then tie it with first scrape
 
 
