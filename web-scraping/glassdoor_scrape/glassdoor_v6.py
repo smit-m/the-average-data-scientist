@@ -206,6 +206,4 @@ for jobtitle in jobs:
 driver.quit()
 
 
-
-
 ### Filter out "Indeed Prime" from the company field - ?
