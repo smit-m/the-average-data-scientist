@@ -1,7 +1,6 @@
 #get links from the scraped list 
 #use the db to pull the url list first and then tie it with first scrape
 
-
 import os
 import time
 from selenium import webdriver
